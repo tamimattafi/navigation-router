@@ -5,7 +5,7 @@ import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.navigator.NavigationBuffer
 import com.attafitamim.navigation.router.core.result.ResultKey
 import com.attafitamim.navigation.router.core.result.ResultListener
-import com.attafitamim.navigation.router.core.result.ResultListenerHandler
+import com.attafitamim.navigation.router.core.global.Disposable
 import com.attafitamim.navigation.router.core.result.ResultWire
 import com.attafitamim.navigation.router.core.router.Router
 
@@ -15,14 +15,14 @@ import com.attafitamim.navigation.router.core.router.Router
  * Extend it to add needed transition methods.
  */
 abstract class BaseRouter(
-    internal val commandBuffer: NavigationBuffer,
+    internal val navigationBuffer: NavigationBuffer,
     private val resultWire: ResultWire
 ) : Router {
 
     override fun <T> setResultListener(
         key: ResultKey<T>,
         listener: ResultListener<T>
-    ): ResultListenerHandler {
+    ): Disposable {
         return resultWire.setResultListener(key, listener)
     }
 
@@ -36,6 +36,6 @@ abstract class BaseRouter(
      * @param commands navigation command array to execute
      */
     protected fun executeCommands(navigatorKey: String? = null, vararg commands: Command) {
-        commandBuffer.applyCommands(navigatorKey, commands)
+        navigationBuffer.applyCommands(navigatorKey, commands)
     }
 }

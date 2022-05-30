@@ -5,11 +5,13 @@ import android.content.Intent
 import androidx.fragment.app.*
 import com.attafitamim.navigation.router.android.screens.*
 import com.attafitamim.navigation.router.core.commands.Command
-import com.attafitamim.navigation.router.core.screens.ScreenAdapter
+import com.attafitamim.navigation.router.core.handlers.ScreenExitHandler
+import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.screens.Screen
+import java.util.LinkedHashSet
 
-open class AndroidAppNavigator @JvmOverloads constructor(
+open class ActivityNavigator @JvmOverloads constructor(
     protected val activity: FragmentActivity,
     protected val containerId: Int,
     protected val screenAdapter: ScreenAdapter<AndroidScreen>,
@@ -17,7 +19,24 @@ open class AndroidAppNavigator @JvmOverloads constructor(
     protected val fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory
 ) : Navigator {
 
+    private var screenExitHandler: ScreenExitHandler? = null
+
+    private val currentScreens = LinkedHashSet<Screen>()
     protected val localStackCopy = mutableListOf<String>()
+
+    override val currentVisibleScreen: Screen? get() {
+        val currentScreen = currentScreens.lastOrNull() ?: return null
+        val currentFragmentByTag = fragmentManager.findFragmentByTag(currentScreen.key)
+            ?: return null
+
+        val currentFragmentById = fragmentManager.findFragmentById(containerId)
+            ?: return null
+
+        return currentScreen.takeIf {
+            currentFragmentById == currentFragmentByTag
+                    && currentFragmentByTag.isVisible
+        }
+    }
 
     override fun applyCommands(commands: Array<out Command>) {
         fragmentManager.executePendingTransactions()
@@ -34,6 +53,14 @@ open class AndroidAppNavigator @JvmOverloads constructor(
         }
     }
 
+    override fun setScreenExitHandler(handler: ScreenExitHandler) {
+        this.screenExitHandler = handler
+    }
+
+    override fun removeScreenExitHandler() {
+        this.screenExitHandler = null
+    }
+
     private fun copyStackToLocal() {
         localStackCopy.clear()
         for (i in 0 until fragmentManager.backStackEntryCount) {
@@ -48,49 +75,59 @@ open class AndroidAppNavigator @JvmOverloads constructor(
      */
     protected open fun applyCommand(command: Command) {
         when (command) {
-            is Command.Forward -> forward(screenAdapter.createPlatformScreen(command.screen))
-            is Command.Replace -> replace(screenAdapter.createPlatformScreen(command.screen))
-            is Command.BackTo -> backTo(command.screen?.let(screenAdapter::createPlatformScreen))
+            is Command.Forward -> forward(command.screen)
+            is Command.Replace -> replace(command.screen)
+            is Command.BackTo -> backTo(command.screen)
             is Command.Back -> back()
         }
     }
 
-    protected open fun forward(screen: AndroidScreen) {
-        when (screen) {
-            is ActivityScreen -> {
-                checkAndStartActivity(screen)
+    protected open fun forward(screen: Screen) {
+        when (val androidScreen = screenAdapter.createPlatformScreen(screen)) {
+            is AndroidScreen.Activity -> {
+                checkAndStartActivity(screen, androidScreen)
             }
-            is FragmentScreen -> {
-                commitNewFragmentScreen(screen, true)
+            is AndroidScreen.Fragment -> {
+                commitNewFragmentScreen(screen, androidScreen, true)
             }
-            is DialogScreen -> {
-                openNewDialogScreen(screen)
+            is AndroidScreen.Dialog -> {
+                openNewDialogScreen(screen, androidScreen)
             }
         }
     }
 
-    protected open fun replace(screen: AndroidScreen) {
-        when (screen) {
-            is ActivityScreen -> {
-                checkAndStartActivity(screen)
+    protected open fun replace(screen: Screen) {
+        when (val androidScreen = screenAdapter.createPlatformScreen(screen)) {
+            is AndroidScreen.Activity -> {
+                checkAndStartActivity(screen, androidScreen)
                 activity.finish()
             }
-            is FragmentScreen -> {
+
+            is AndroidScreen.Fragment -> {
                 if (localStackCopy.isNotEmpty()) {
                     fragmentManager.popBackStack()
                     localStackCopy.removeAt(localStackCopy.lastIndex)
-                    commitNewFragmentScreen(screen, true)
+                    commitNewFragmentScreen(screen, androidScreen, true)
                 } else {
-                    commitNewFragmentScreen(screen, false)
+                    commitNewFragmentScreen(screen, androidScreen, false)
                 }
             }
-            is DialogScreen -> {
-                openNewDialogScreen(screen)
+
+            is AndroidScreen.Dialog -> {
+                openNewDialogScreen(screen, androidScreen)
             }
         }
     }
 
     protected open fun back() {
+        val visibleScreen = currentVisibleScreen
+        val canBackPress = visibleScreen == null
+                || screenExitHandler?.canExitScreen(visibleScreen) ?: true
+
+        if (canBackPress) performBack()
+    }
+
+    protected open fun performBack() {
         if (localStackCopy.isNotEmpty()) {
             fragmentManager.popBackStack()
             localStackCopy.removeAt(localStackCopy.lastIndex)
@@ -104,19 +141,20 @@ open class AndroidAppNavigator @JvmOverloads constructor(
     }
 
     protected open fun commitNewFragmentScreen(
-        screen: FragmentScreen,
+        screen: Screen,
+        fragmentScreen: AndroidScreen.Fragment,
         addToBackStack: Boolean
     ) {
-        val fragment = screen.createFragment(fragmentFactory)
+        val fragment = fragmentScreen.createFragment(fragmentFactory)
         val transaction = fragmentManager.beginTransaction()
         transaction.setReorderingAllowed(true)
         setupFragmentTransaction(
-            screen,
+            fragmentScreen,
             transaction,
             fragmentManager.findFragmentById(containerId),
             fragment
         )
-        if (screen.clearContainer) {
+        if (fragmentScreen.clearContainer) {
             transaction.replace(containerId, fragment, screen.key)
         } else {
             transaction.add(containerId, fragment, screen.key)
@@ -128,16 +166,18 @@ open class AndroidAppNavigator @JvmOverloads constructor(
         transaction.commit()
     }
 
-    protected open fun openNewDialogScreen(screen: DialogScreen) {
-        val dialog = screen.createDialog(fragmentFactory)
+    protected open fun openNewDialogScreen(screen: Screen, dialogScreen: AndroidScreen.Dialog) {
+        val dialog = dialogScreen.createDialog(fragmentFactory)
         dialog.show(fragmentManager, screen.key)
     }
 
     /**
      * Performs [Command.BackTo] command transition
      */
-    protected open fun backTo(screen: AndroidScreen?) {
-        if (screen == null) return backToRoot()
+    protected open fun backTo(screen: Screen?) {
+        val androidScreen = screen?.let(screenAdapter::createPlatformScreen)
+            ?: return backToRoot()
+
         val tag = screen.key
         val index = localStackCopy.indexOfFirst { it == tag }
         if (index != -1) {
@@ -145,7 +185,7 @@ open class AndroidAppNavigator @JvmOverloads constructor(
             fragmentManager.popBackStack(forRemove.first().toString(), 0)
             forRemove.clear()
         } else {
-            backToUnexisting(screen)
+            backToUnexisting(androidScreen)
         }
     }
 
@@ -164,7 +204,7 @@ open class AndroidAppNavigator @JvmOverloads constructor(
      * @param nextFragment        next screen fragment
      */
     protected open fun setupFragmentTransaction(
-        screen: FragmentScreen,
+        screen: AndroidScreen.Fragment,
         fragmentTransaction: FragmentTransaction,
         currentFragment: Fragment?,
         nextFragment: Fragment
@@ -172,13 +212,13 @@ open class AndroidAppNavigator @JvmOverloads constructor(
         // Do nothing by default
     }
 
-    private fun checkAndStartActivity(screen: ActivityScreen) {
+    private fun checkAndStartActivity(screen: Screen, activityScreen: AndroidScreen.Activity) {
         // Check if we can start activity
-        val activityIntent = screen.createIntent(activity)
+        val activityIntent = activityScreen.createIntent(activity)
         try {
-            activity.startActivity(activityIntent, screen.startActivityOptions)
+            activity.startActivity(activityIntent, activityScreen.startActivityOptions)
         } catch (e: ActivityNotFoundException) {
-            unexistingActivity(screen, activityIntent)
+            unexistingActivity(screen, activityScreen, activityIntent)
         }
     }
 
@@ -189,7 +229,8 @@ open class AndroidAppNavigator @JvmOverloads constructor(
      * @param activityIntent intent passed to start Activity for the `tag`
      */
     protected open fun unexistingActivity(
-        screen: ActivityScreen,
+        screen: Screen,
+        activityScreen: AndroidScreen.Activity,
         activityIntent: Intent
     ) {
         // Do nothing by default

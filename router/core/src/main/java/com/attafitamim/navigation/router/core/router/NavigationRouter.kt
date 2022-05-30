@@ -1,5 +1,7 @@
 package com.attafitamim.navigation.router.core.router
 
+import com.attafitamim.navigation.router.core.global.Disposable
+import com.attafitamim.navigation.router.core.handlers.CurrentScreenExitHandler
 import com.attafitamim.navigation.router.core.screens.Screen
 
 interface NavigationRouter : Router {
@@ -85,4 +87,12 @@ interface NavigationRouter : Router {
      *
      */
     fun exit(navigatorKey: String? = null)
+
+    /**
+     *
+     */
+    fun setCurrentScreenExitHandler(
+        navigatorKey: String? = null,
+        handler: CurrentScreenExitHandler
+    ): Disposable
 }

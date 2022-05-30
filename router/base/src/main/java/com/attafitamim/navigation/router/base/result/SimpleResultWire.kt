@@ -2,7 +2,7 @@ package com.attafitamim.navigation.router.base.result
 
 import com.attafitamim.navigation.router.core.result.ResultKey
 import com.attafitamim.navigation.router.core.result.ResultListener
-import com.attafitamim.navigation.router.core.result.ResultListenerHandler
+import com.attafitamim.navigation.router.core.global.Disposable
 import com.attafitamim.navigation.router.core.result.ResultWire
 
 class SimpleResultWire : ResultWire {
@@ -12,9 +12,9 @@ class SimpleResultWire : ResultWire {
     override fun <T> setResultListener(
         key: ResultKey<T>,
         listener: ResultListener<T>
-    ): ResultListenerHandler {
+    ): Disposable {
         provideListenersList(key).add(listener)
-        return ResultListenerHandler {
+        return Disposable {
             listeners[key]?.remove(listener)
         }
     }

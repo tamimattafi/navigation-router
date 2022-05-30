@@ -1,6 +1,8 @@
 package com.attafitamim.navigation.router.base.router
 
 import com.attafitamim.navigation.router.core.commands.Command
+import com.attafitamim.navigation.router.core.global.Disposable
+import com.attafitamim.navigation.router.core.handlers.CurrentScreenExitHandler
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.navigator.NavigationBuffer
 import com.attafitamim.navigation.router.core.result.ResultWire
@@ -14,9 +16,9 @@ import com.attafitamim.navigation.router.core.router.NavigationRouter
  * Extend it if you need some tricky navigation.
  */
 open class SimpleNavigationRouter(
-    commandBuffer: NavigationBuffer,
+    navigationBuffer: NavigationBuffer,
     resultWire: ResultWire
-) : BaseRouter(commandBuffer, resultWire), NavigationRouter {
+) : BaseRouter(navigationBuffer, resultWire), NavigationRouter {
 
     override fun navigateTo(screen: Screen, navigatorKey: String?) {
         executeCommands(
@@ -71,4 +73,9 @@ open class SimpleNavigationRouter(
     override fun exit(navigatorKey: String?) {
         executeCommands(navigatorKey, Command.Back)
     }
+
+    override fun setCurrentScreenExitHandler(
+        navigatorKey: String?,
+        handler: CurrentScreenExitHandler
+    ): Disposable = navigationBuffer.setCurrentScreenExitHandler(navigatorKey, handler)
 }

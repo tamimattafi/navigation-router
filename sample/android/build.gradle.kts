@@ -44,7 +44,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
     // Router
-    implementation(project(":router:core"))
-    implementation(project(":router:base"))
     implementation(project(":router:android"))
 }
