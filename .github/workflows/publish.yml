@@ -18,8 +18,14 @@ jobs:
           distribution: adopt
           java-version: 11
 
-      - name: Build Router
-        run: ./gradlew :router:assemble
+      - name: Build Core
+        run: ./gradlew :router:core:assemble
+
+      - name: Build Base
+        run: ./gradlew :router:base:assemble
+
+      - name: Build Android
+        run: ./gradlew :router:android:assemble
 
       - name: Source jar
         run: ./gradlew projectSourcesJar javadocJar

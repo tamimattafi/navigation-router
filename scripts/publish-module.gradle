@@ -52,7 +52,12 @@ afterEvaluate {
                 artifactId PUBLISH_ARTIFACT_ID
                 version PUBLISH_VERSION
 
-                from components.java
+                // Two artifacts, the `aar` (or `jar`) and the sources
+                if (project.plugins.findPlugin("com.android.library")) {
+                    from components.release
+                } else {
+                    from components.java
+                }
 
                 artifact projectSourcesJar
                 artifact javadocJar
