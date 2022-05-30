@@ -3,10 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-ext {
-    set("PUBLISH_ARTIFACT_ID", "android")
-}
-
+ext.set("PUBLISH_ARTIFACT_ID", "android")
 apply(from = "${rootProject.projectDir}/scripts/publish-module.gradle")
 
 android {
