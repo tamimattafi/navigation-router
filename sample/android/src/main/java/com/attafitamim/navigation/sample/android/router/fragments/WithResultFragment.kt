@@ -31,13 +31,6 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
         btnComplexResult?.setOnClickListener {
             publishComplexResult()
         }
-
-        var clickCount = 0
-        ApplicationRouter.instance.setCurrentScreenExitHandler {
-            Toast.makeText(requireContext(), "Click again to exit", Toast.LENGTH_SHORT).show()
-            clickCount++
-            clickCount > 1
-        }
     }
 
     private fun publishResult() {

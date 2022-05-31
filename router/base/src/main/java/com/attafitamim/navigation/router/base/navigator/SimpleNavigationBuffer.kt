@@ -16,7 +16,6 @@ class SimpleNavigationBuffer(
 
     private var navigators = mutableMapOf<String?, Navigator>()
     private val pendingCommands = mutableMapOf<String?, MutableList<Array<out Command>>>()
-
     private val screenExitHandlers = mutableMapOf<String, CurrentScreenExitHandler>()
 
     override fun setCurrentScreenExitHandler(
@@ -47,7 +46,7 @@ class SimpleNavigationBuffer(
             throw IllegalArgumentException("A navigator with the key $navigatorKey already exists")
         }
 
-        navigator.setScreenExitHandler { screen ->
+        navigator.setScreenExitCallbackHandler { screen ->
             canScreenBackPress(navigatorKey, screen)
         }
 
@@ -60,7 +59,7 @@ class SimpleNavigationBuffer(
 
     override fun removeNavigator(navigatorKey: String?) {
         val navigator = navigators.remove(navigatorKey)
-        navigator?.removeScreenExitHandler()
+        navigator?.removeScreenExitCallbackHandler()
     }
 
     override fun applyCommands(navigatorKey: String?, commands: Array<out Command>) {
@@ -78,7 +77,8 @@ class SimpleNavigationBuffer(
     private fun canScreenBackPress(navigatorKey: String?, screen: Screen): Boolean {
         val exitHandlerKey = createExitHandlerKey(navigatorKey, screen)
         val screenHandler = screenExitHandlers[exitHandlerKey]
-        return screenHandler?.canExitScreen() ?: true
+        val canScreenExit = screenHandler?.canExitScreen()
+        return canScreenExit ?: true
     }
 
     private fun createExitHandlerKey(navigatorKey: String?, screen: Screen) = buildString {

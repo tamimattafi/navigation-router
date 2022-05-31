@@ -9,6 +9,6 @@ import com.attafitamim.navigation.router.core.screens.Screen
 interface Navigator {
     val currentVisibleScreen: Screen?
     fun applyCommands(commands: Array<out Command>)
-    fun setScreenExitHandler(handler: ScreenExitHandler)
-    fun removeScreenExitHandler()
+    fun setScreenExitCallbackHandler(handler: ScreenExitHandler)
+    fun removeScreenExitCallbackHandler()
 }

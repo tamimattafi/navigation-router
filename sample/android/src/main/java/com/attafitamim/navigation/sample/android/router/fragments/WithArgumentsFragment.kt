@@ -9,7 +9,7 @@ import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.sample.android.R
 import com.attafitamim.navigation.sample.android.router.ApplicationRouter
 import com.attafitamim.navigation.sample.android.utls.argumentsString
-import java.util.*
+import java.util.Random
 
 class WithArgumentsFragment : Fragment(R.layout.fragment_with_arguments) {
 
@@ -19,6 +19,7 @@ class WithArgumentsFragment : Fragment(R.layout.fragment_with_arguments) {
     private val txtArgs get() = view?.findViewById<TextView>(R.id.txtArgs)
     private val btnReattach get() = view?.findViewById<Button>(R.id.btnReattach)
     private val btnReattachDifferentArgs get() = view?.findViewById<Button>(R.id.btnReattachDifferentArgs)
+    private val btnReattachFixedArgs get() = view?.findViewById<Button>(R.id.btnReattachFixedArgs)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -30,21 +31,29 @@ class WithArgumentsFragment : Fragment(R.layout.fragment_with_arguments) {
         txtArgs?.text = argumentsString
 
         btnReattach?.setOnClickListener {
-            val screen = NavigationScreen.WithArguments(arg1, arg2)
-            ApplicationRouter.instance.navigateTo(screen)
+            reattach()
         }
 
         btnReattachDifferentArgs?.setOnClickListener {
-            openArgumentsScreen()
+            reattach(
+                arg1 = "Some arguments from ${javaClass.simpleName}",
+                arg2 = "Random int ${Random().nextInt()}"
+            )
+        }
+
+        btnReattachFixedArgs?.setOnClickListener {
+            reattach(
+                arg1 = "Some fixed arguments from ${javaClass.simpleName}",
+                arg2 = "Fixed int: 123"
+            )
         }
     }
 
-    private fun openArgumentsScreen() {
-        val screen = NavigationScreen.WithArguments(
-            arg1 = "Some arguments from ${javaClass.simpleName}",
-            arg2 = "Random int ${Random().nextInt()}"
-        )
-
+    private fun reattach(
+        arg1: String = this.arg1,
+        arg2: String = this.arg2
+    ) {
+        val screen = NavigationScreen.WithArguments(arg1, arg2)
         ApplicationRouter.instance.navigateTo(screen)
     }
 }

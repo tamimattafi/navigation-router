@@ -1,6 +1,7 @@
 package com.attafitamim.navigation.sample.android.router
 
 import android.os.Bundle
+import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.android.navigator.ActivityNavigator
@@ -10,13 +11,6 @@ class MainActivity : AppCompatActivity() {
 
     // One time per activity (Or fragment if it has sub-fragments and plays the role of the navigator)
     private val navigator = ActivityNavigator(this, R.id.fragmentContainer, ScreenAdapter)
-
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-
-        // Navigation key is optional, null is also considered as a key
-        ApplicationRouter.navigatorHolder.setNavigator(navigator)
-    }
 
     override fun onPause() {
         // Navigation key is optional, null is also considered as a key
@@ -28,6 +22,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Navigation key is optional, null is also considered as a key
+        ApplicationRouter.navigatorHolder.setNavigator(navigator)
+
+        // Start navigation from this screen
         ApplicationRouter.instance.newRootChain(NavigationScreen.Simple)
     }
 
