@@ -45,4 +45,7 @@ dependencies {
 
     // Router
     implementation(project(":router:android"))
+
+    // Common
+    implementation(project(":sample:common"))
 }

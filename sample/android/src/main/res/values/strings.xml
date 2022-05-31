@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Android Sample</string>
+    <string name="title_screen_simple">Simple Fragment</string>
+    <string name="title_screen_with_arguments">With Arguments</string>
+    <string name="title_screen_with_result">With Result</string>
+    <string name="label_button_send_result">Send Result</string>
+    <string name="label_button_send_complex_result">Send Complex Result</string>
 </resources>

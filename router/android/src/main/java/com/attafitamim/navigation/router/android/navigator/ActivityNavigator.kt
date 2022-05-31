@@ -2,6 +2,8 @@ package com.attafitamim.navigation.router.android.navigator
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.view.KeyEvent
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.*
 import com.attafitamim.navigation.router.android.screens.*
 import com.attafitamim.navigation.router.core.commands.Command
@@ -9,7 +11,7 @@ import com.attafitamim.navigation.router.core.handlers.ScreenExitHandler
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.screens.Screen
-import java.util.LinkedHashSet
+import java.util.LinkedHashMap
 
 open class ActivityNavigator @JvmOverloads constructor(
     protected val activity: FragmentActivity,
@@ -21,22 +23,14 @@ open class ActivityNavigator @JvmOverloads constructor(
 
     private var screenExitHandler: ScreenExitHandler? = null
 
-    private val currentScreens = LinkedHashSet<Screen>()
+    protected val screenHistory = LinkedHashMap<String, Screen>()
     protected val localStackCopy = mutableListOf<String>()
 
-    override val currentVisibleScreen: Screen? get() {
-        val currentScreen = currentScreens.lastOrNull() ?: return null
-        val currentFragmentByTag = fragmentManager.findFragmentByTag(currentScreen.key)
-            ?: return null
+    private val currentVisibleFragment get() =
+        fragmentManager.fragments.lastOrNull()?.takeIf(Fragment::isVisible)
 
-        val currentFragmentById = fragmentManager.findFragmentById(containerId)
-            ?: return null
-
-        return currentScreen.takeIf {
-            currentFragmentById == currentFragmentByTag
-                    && currentFragmentByTag.isVisible
-        }
-    }
+    override val currentVisibleScreen: Screen? get() =
+        screenHistory[currentVisibleFragment?.tag]
 
     override fun applyCommands(commands: Array<out Command>) {
         fragmentManager.executePendingTransactions()
@@ -121,19 +115,32 @@ open class ActivityNavigator @JvmOverloads constructor(
 
     protected open fun back() {
         val visibleScreen = currentVisibleScreen
-        val canBackPress = visibleScreen == null
-                || screenExitHandler?.canExitScreen(visibleScreen) ?: true
+        val canBackPress = visibleScreen == null || screenExitHandler?.canExitScreen(visibleScreen)
+                ?: true
 
         if (canBackPress) performBack()
     }
 
     protected open fun performBack() {
-        if (localStackCopy.isNotEmpty()) {
-            fragmentManager.popBackStack()
-            localStackCopy.removeAt(localStackCopy.lastIndex)
-        } else {
-            activityBack()
+        val visibleScreenKey = currentVisibleScreen?.key
+        if (visibleScreenKey != null) removeScreen(visibleScreenKey)
+        else activityBack()
+    }
+
+    protected fun removeScreen(key: String) {
+        val fragment = fragmentManager.findFragmentByTag(key) ?: return
+        if (fragment is DialogFragment) {
+            fragment.dismiss()
+            return
         }
+
+        if (localStackCopy.isNotEmpty()) {
+            if (fragment.isVisible) fragmentManager.popBackStack()
+            else fragmentManager.beginTransaction().remove(fragment).commitNow()
+            return
+        }
+
+        screenHistory.remove(key)
     }
 
     protected open fun activityBack() {
@@ -164,11 +171,15 @@ open class ActivityNavigator @JvmOverloads constructor(
             localStackCopy.add(screen.key)
         }
         transaction.commit()
+
+        screenHistory[screen.key] = screen
     }
 
     protected open fun openNewDialogScreen(screen: Screen, dialogScreen: AndroidScreen.Dialog) {
         val dialog = dialogScreen.createDialog(fragmentFactory)
         dialog.show(fragmentManager, screen.key)
+        dialog.isCancelable = false
+        screenHistory[screen.key] = screen
     }
 
     /**
@@ -191,6 +202,7 @@ open class ActivityNavigator @JvmOverloads constructor(
 
     private fun backToRoot() {
         localStackCopy.clear()
+        screenHistory.clear()
         fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
 
