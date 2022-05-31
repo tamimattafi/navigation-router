@@ -15,4 +15,16 @@
         android:id="@+id/txtArgs"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnReattach"
+        android:text="@string/label_button_reattach"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnReattachDifferentArgs"
+        android:text="@string/label_button_reattach_other_arguments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

@@ -5,4 +5,6 @@
     <string name="title_screen_with_result">With Result</string>
     <string name="label_button_send_result">Send Result</string>
     <string name="label_button_send_complex_result">Send Complex Result</string>
+    <string name="label_button_reattach">Reattach</string>
+    <string name="label_button_reattach_other_arguments">Reattach with different arguments</string>
 </resources>

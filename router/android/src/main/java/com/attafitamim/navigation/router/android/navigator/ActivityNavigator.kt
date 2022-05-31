@@ -3,7 +3,6 @@ package com.attafitamim.navigation.router.android.navigator
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.*
 import com.attafitamim.navigation.router.android.screens.*
 import com.attafitamim.navigation.router.core.commands.Command
@@ -27,7 +26,7 @@ open class ActivityNavigator @JvmOverloads constructor(
     protected val localStackCopy = mutableListOf<String>()
 
     private val currentVisibleFragment get() =
-        fragmentManager.fragments.lastOrNull()?.takeIf(Fragment::isVisible)
+        fragmentManager.fragments.lastOrNull()
 
     override val currentVisibleScreen: Screen? get() =
         screenHistory[currentVisibleFragment?.tag]
@@ -127,7 +126,14 @@ open class ActivityNavigator @JvmOverloads constructor(
         else activityBack()
     }
 
+    protected fun resetScreen(screen: Screen) {
+        removeScreen(screen.key)
+        screenHistory[screen.key] = screen
+    }
+
     protected fun removeScreen(key: String) {
+        screenHistory.remove(key)
+
         val fragment = fragmentManager.findFragmentByTag(key) ?: return
         if (fragment is DialogFragment) {
             fragment.dismiss()
@@ -139,8 +145,6 @@ open class ActivityNavigator @JvmOverloads constructor(
             else fragmentManager.beginTransaction().remove(fragment).commitNow()
             return
         }
-
-        screenHistory.remove(key)
     }
 
     protected open fun activityBack() {
@@ -152,6 +156,7 @@ open class ActivityNavigator @JvmOverloads constructor(
         fragmentScreen: AndroidScreen.Fragment,
         addToBackStack: Boolean
     ) {
+        resetScreen(screen)
         val fragment = fragmentScreen.createFragment(fragmentFactory)
         val transaction = fragmentManager.beginTransaction()
         transaction.setReorderingAllowed(true)
@@ -171,15 +176,19 @@ open class ActivityNavigator @JvmOverloads constructor(
             localStackCopy.add(screen.key)
         }
         transaction.commit()
-
-        screenHistory[screen.key] = screen
     }
 
     protected open fun openNewDialogScreen(screen: Screen, dialogScreen: AndroidScreen.Dialog) {
+        resetScreen(screen)
         val dialog = dialogScreen.createDialog(fragmentFactory)
-        dialog.show(fragmentManager, screen.key)
-        dialog.isCancelable = false
-        screenHistory[screen.key] = screen
+        dialog.showNow(fragmentManager, screen.key)
+
+        dialog.dialog?.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                back()
+                true
+            } else false
+        }
     }
 
     /**

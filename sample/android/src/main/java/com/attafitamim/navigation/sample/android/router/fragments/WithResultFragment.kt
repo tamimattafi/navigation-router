@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.attafitamim.navigation.common.router.Results
 import com.attafitamim.navigation.sample.android.R
@@ -29,6 +30,13 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
 
         btnComplexResult?.setOnClickListener {
             publishComplexResult()
+        }
+
+        var clickCount = 0
+        ApplicationRouter.instance.setCurrentScreenExitHandler {
+            Toast.makeText(requireContext(), "Click again to exit", Toast.LENGTH_SHORT).show()
+            clickCount++
+            clickCount > 1
         }
     }
 

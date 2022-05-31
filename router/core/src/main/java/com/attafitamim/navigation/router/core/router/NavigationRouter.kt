@@ -89,6 +89,10 @@ interface NavigationRouter : Router {
     fun exit(navigatorKey: String? = null)
 
     /**
+     * Handle back press for fragments and dialogs
+     *
+     * @param navigatorKey navigator that should be used to handle the operation
+     * @param handler exit callback handler
      *
      */
     fun setCurrentScreenExitHandler(
