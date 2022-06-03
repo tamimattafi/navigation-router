@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
-ext.set("PUBLISH_ARTIFACT_ID", "base")
+ext.set("PUBLISH_ARTIFACT_ID", "router-base")
 apply(from = "${rootProject.projectDir}/scripts/publish-module.gradle")
 
 java {
