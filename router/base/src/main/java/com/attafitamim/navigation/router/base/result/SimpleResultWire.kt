@@ -7,27 +7,20 @@ import com.attafitamim.navigation.router.core.result.ResultWire
 
 class SimpleResultWire : ResultWire {
 
-    private val listeners = mutableMapOf<ResultKey<*>, MutableList<ResultListener<*>>>()
+    private val listeners = mutableMapOf<ResultKey<*>, ResultListener<*>>()
 
     override fun <T> setResultListener(
         key: ResultKey<T>,
         listener: ResultListener<T>
     ): Disposable {
-        provideListenersList(key).add(listener)
+        listeners[key] = listener
         return Disposable {
-            listeners[key]?.remove(listener)
+            listeners.remove(key)
         }
     }
 
     override fun <T> sendResult(key: ResultKey<T>, data: T) {
-        val listener = listeners.remove(key) as? MutableList<ResultListener<T>>
-        listener?.forEach { resultListener ->
-            resultListener.onResult(data)
-        }
+        val listener = listeners.remove(key) as? ResultListener<T>
+        listener?.onResult(data)
     }
-
-    private fun provideListenersList(resultKey: ResultKey<*>): MutableList<ResultListener<*>> =
-        listeners[resultKey] ?: mutableListOf<ResultListener<*>>().also { list ->
-            listeners[resultKey] = list
-        }
 }
