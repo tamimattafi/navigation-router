@@ -3,7 +3,6 @@ package com.attafitamim.navigation.router.android.navigator
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -39,17 +38,6 @@ abstract class BaseNavigator : Navigator {
     override val currentVisibleScreen: Screen? get() =
         screenHistory[currentVisibleFragment?.tag]
 
-    protected open val backCallback by lazy {
-        val callback = object : OnBackPressedCallback(false) {
-            override fun handleOnBackPressed() {
-                back()
-            }
-        }
-
-        activity.onBackPressedDispatcher.addCallback(lifecycleOwner, callback)
-        return@lazy callback
-    }
-
     protected abstract fun exitNavigator()
 
     override fun applyCommands(commands: Array<out Command>) {
@@ -66,11 +54,9 @@ abstract class BaseNavigator : Navigator {
 
     override fun setScreenExitCallbackHandler(handler: ScreenExitHandler) {
         this.screenExitHandler = handler
-        backCallback.isEnabled = true
     }
 
     override fun removeScreenExitCallbackHandler() {
-        backCallback.isEnabled = false
         this.screenExitHandler = null
     }
 
@@ -106,8 +92,25 @@ abstract class BaseNavigator : Navigator {
     }
 
     private fun dismissOpenDialogs() {
-        screenHistory.values.forEach { screen ->
-            if (screen is AndroidScreen.Dialog) removeScreen(screen)
+        if (currentVisibleFragment !is DialogFragment) return
+        removeTopDialog()
+
+        val screensToRemove = screenHistory.values.mapNotNull { screen ->
+            val fragment = fragmentManager.findFragmentByTag(screen.key)
+            if (fragment !is DialogFragment) null
+            else screen to fragment
+        }
+
+        screensToRemove.forEach { screenPair ->
+            removeScreen(screenPair.first, screenPair.second)
+        }
+    }
+
+    private fun removeTopDialog() {
+        val currentVisibleScreen = currentVisibleScreen ?: return
+        val visibleFragment = currentVisibleFragment
+        if (visibleFragment is DialogFragment) {
+            removeScreen(currentVisibleScreen)
         }
     }
 
@@ -139,11 +142,7 @@ abstract class BaseNavigator : Navigator {
     }
 
     protected open fun replaceDialog(screen: Screen, androidScreen: AndroidScreen.Dialog) {
-        val visibleFragment = currentVisibleFragment
-        if (visibleFragment is DialogFragment) {
-            visibleFragment.dismiss()
-        }
-
+        removeTopDialog()
         openNewDialogScreen(screen, androidScreen)
     }
 
@@ -168,7 +167,10 @@ abstract class BaseNavigator : Navigator {
 
     protected open fun removeScreen(screen: Screen) {
         val fragment = fragmentManager.findFragmentByTag(screen.key) ?: return
+        removeScreen(screen, fragment)
+    }
 
+    protected open fun removeScreen(screen: Screen, fragment: Fragment) {
         when {
             fragment is DialogFragment -> {
                 fragment.dismiss()

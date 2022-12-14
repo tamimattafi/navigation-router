@@ -8,4 +8,7 @@
     <string name="label_button_reattach">Reattach</string>
     <string name="label_button_reattach_other_arguments">Reattach with different arguments</string>
     <string name="label_button_reattach_fixed_arguments">Reattach with fixed arguments</string>
+    <string name="label_button_open_top_fragment">Open Fragment On Top</string>
+    <string name="label_button_open_top_dialog">Open Dialog On Top</string>
+    <string name="label_button_replace_dialog">Replace Dialog</string>
 </resources>

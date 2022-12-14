@@ -19,11 +19,15 @@ class MainActivity : AppCompatActivity(), FragmentTransactionProcessor {
         fragmentTransactionProcessor = this
     )
 
-    override fun onPause() {
+    override fun onDestroy() {
         // Navigation key is optional, null is also considered as a key
         ApplicationRouter.navigatorHolder.removeNavigator()
+        
+        super.onDestroy()
+    }
 
-        super.onPause()
+    override fun onBackPressed() {
+        ApplicationRouter.instance.exit()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

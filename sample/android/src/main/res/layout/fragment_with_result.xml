@@ -29,4 +29,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
+    <Button
+        android:id="@+id/btnOpenTopFragment"
+        android:text="@string/label_button_open_top_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnOpenTopDialog"
+        android:text="@string/label_button_open_top_dialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnReplaceDialog"
+        android:text="@string/label_button_replace_dialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout>
