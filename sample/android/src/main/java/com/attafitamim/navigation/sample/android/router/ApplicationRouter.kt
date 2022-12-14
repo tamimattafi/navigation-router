@@ -31,7 +31,7 @@ object ApplicationRouter {
 
     // Initialize only once for the router
     private val resultWire by lazy {
-        SimpleResultWire()
+        SimpleResultWire(transitionHandler::post)
     }
 
     // Initialize only once for the router

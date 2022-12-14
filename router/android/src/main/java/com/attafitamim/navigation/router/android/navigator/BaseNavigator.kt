@@ -3,14 +3,21 @@ package com.attafitamim.navigation.router.android.navigator
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.fragment.app.*
-import com.attafitamim.navigation.router.android.screens.*
+import androidx.activity.OnBackPressedCallback
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentFactory
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.LifecycleOwner
+import com.attafitamim.navigation.router.android.handlers.FragmentTransactionProcessor
+import com.attafitamim.navigation.router.android.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenExitHandler
-import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.screens.Screen
-import java.util.LinkedHashMap
+import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 abstract class BaseNavigator : Navigator {
 
@@ -19,16 +26,29 @@ abstract class BaseNavigator : Navigator {
     protected abstract val screenAdapter: ScreenAdapter<AndroidScreen>
     protected abstract val fragmentManager: FragmentManager
     protected abstract val fragmentFactory: FragmentFactory
+    protected abstract val lifecycleOwner: LifecycleOwner
+    protected abstract val fragmentTransactionProcessor: FragmentTransactionProcessor?
 
     protected open var screenExitHandler: ScreenExitHandler? = null
 
-    protected open val screenHistory = LinkedHashMap<String, Screen>()
+    protected open val screenHistory = mutableMapOf<String, Screen>()
 
     protected open val currentVisibleFragment get() =
         fragmentManager.fragments.lastOrNull()
 
     override val currentVisibleScreen: Screen? get() =
         screenHistory[currentVisibleFragment?.tag]
+
+    protected open val backCallback by lazy {
+        val callback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                back()
+            }
+        }
+
+        activity.onBackPressedDispatcher.addCallback(lifecycleOwner, callback)
+        return@lazy callback
+    }
 
     protected abstract fun exitNavigator()
 
@@ -46,9 +66,11 @@ abstract class BaseNavigator : Navigator {
 
     override fun setScreenExitCallbackHandler(handler: ScreenExitHandler) {
         this.screenExitHandler = handler
+        backCallback.isEnabled = true
     }
 
     override fun removeScreenExitCallbackHandler() {
+        backCallback.isEnabled = false
         this.screenExitHandler = null
     }
 
@@ -79,7 +101,14 @@ abstract class BaseNavigator : Navigator {
     }
 
     protected open fun forwardFragment(screen: Screen, androidScreen: AndroidScreen.Fragment) {
+        dismissOpenDialogs()
         commitNewFragmentScreen(screen, androidScreen, true)
+    }
+
+    private fun dismissOpenDialogs() {
+        screenHistory.values.forEach { screen ->
+            if (screen is AndroidScreen.Dialog) removeScreen(screen)
+        }
     }
 
     protected open fun forwardDialog(screen: Screen, androidScreen: AndroidScreen.Dialog) {
@@ -100,6 +129,7 @@ abstract class BaseNavigator : Navigator {
     }
 
     protected open fun replaceFragment(screen: Screen, androidScreen: AndroidScreen.Fragment) {
+        dismissOpenDialogs()
         if (screenHistory.isNotEmpty()) {
             fragmentManager.popBackStack()
             commitNewFragmentScreen(screen, androidScreen, true)
@@ -136,7 +166,6 @@ abstract class BaseNavigator : Navigator {
         screenHistory[screen.key] = screen
     }
 
-
     protected open fun removeScreen(screen: Screen) {
         val fragment = fragmentManager.findFragmentByTag(screen.key) ?: return
 
@@ -167,6 +196,12 @@ abstract class BaseNavigator : Navigator {
         resetScreen(screen)
         val fragment = fragmentScreen.createFragment(fragmentFactory)
         val transaction = fragmentManager.beginTransaction()
+        fragmentTransactionProcessor?.processTransaction(
+            transaction,
+            screen,
+            fragmentManager.fragments.isEmpty()
+        )
+
         transaction.setReorderingAllowed(true)
         setupFragmentTransaction(
             fragmentScreen,

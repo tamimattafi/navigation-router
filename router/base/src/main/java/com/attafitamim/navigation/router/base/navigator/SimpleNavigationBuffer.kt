@@ -4,11 +4,10 @@ import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.commands.MessageHandler
 import com.attafitamim.navigation.router.core.global.Disposable
 import com.attafitamim.navigation.router.core.handlers.CurrentScreenExitHandler
-import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.navigator.NavigationBuffer
+import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.navigator.NavigatorHolder
 import com.attafitamim.navigation.router.core.screens.Screen
-import java.lang.IllegalArgumentException
 
 class SimpleNavigationBuffer(
     private val messageHandler: MessageHandler
