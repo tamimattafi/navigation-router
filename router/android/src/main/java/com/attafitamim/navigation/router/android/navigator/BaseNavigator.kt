@@ -33,7 +33,7 @@ abstract class BaseNavigator : Navigator {
     protected open val screenHistory = mutableMapOf<String, Screen>()
 
     protected open val currentVisibleFragment get() =
-        fragmentManager.fragments.lastOrNull()
+        fragmentManager.fragments.lastOrNull(Fragment::isVisible)
 
     override val currentVisibleScreen: Screen? get() =
         screenHistory[currentVisibleFragment?.tag]
