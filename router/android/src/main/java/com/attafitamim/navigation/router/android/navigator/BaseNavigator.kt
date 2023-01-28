@@ -254,6 +254,7 @@ abstract class BaseNavigator : Navigator {
     }
 
     private fun backToRoot() {
+        dismissOpenDialogs()
         screenHistory.clear()
         fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
