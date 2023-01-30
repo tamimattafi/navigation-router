@@ -91,7 +91,7 @@ abstract class BaseNavigator : Navigator {
         commitNewFragmentScreen(screen, androidScreen, true)
     }
 
-    private fun dismissOpenDialogs() {
+    protected open fun dismissOpenDialogs() {
         if (currentVisibleFragment !is DialogFragment) return
         removeTopDialog()
 
@@ -106,7 +106,7 @@ abstract class BaseNavigator : Navigator {
         }
     }
 
-    private fun removeTopDialog() {
+    protected open fun removeTopDialog() {
         val currentVisibleScreen = currentVisibleScreen ?: return
         val visibleFragment = currentVisibleFragment
         if (visibleFragment is DialogFragment) {
@@ -253,7 +253,7 @@ abstract class BaseNavigator : Navigator {
         }
     }
 
-    private fun backToRoot() {
+    protected open fun backToRoot() {
         dismissOpenDialogs()
         screenHistory.clear()
         fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -277,7 +277,7 @@ abstract class BaseNavigator : Navigator {
         // Do nothing by default
     }
 
-    private fun checkAndStartActivity(screen: Screen, activityScreen: AndroidScreen.Activity) {
+    protected open fun checkAndStartActivity(screen: Screen, activityScreen: AndroidScreen.Activity) {
         // Check if we can start activity
         val activityIntent = activityScreen.createIntent(activity)
         try {
