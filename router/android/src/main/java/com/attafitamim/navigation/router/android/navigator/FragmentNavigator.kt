@@ -16,7 +16,8 @@ open class FragmentNavigator @JvmOverloads constructor(
     override val fragmentManager: FragmentManager = fragment.childFragmentManager,
     override val fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
     override val lifecycleOwner: LifecycleOwner = fragment,
-    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null
+    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
+    override val keepAfterLastFragment: Boolean = false
 ) : BaseNavigator() {
 
     override val activity: FragmentActivity

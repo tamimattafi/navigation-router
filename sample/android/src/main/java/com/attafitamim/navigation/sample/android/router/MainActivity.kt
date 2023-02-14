@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity(), FragmentTransactionProcessor {
         ApplicationRouter.instance.newRootChain(NavigationScreen.Simple)
     }
 
-    override fun processTransaction(
+    override fun onAttachingFragment(
         transaction: FragmentTransaction,
         screen: Screen,
         isInitial: Boolean

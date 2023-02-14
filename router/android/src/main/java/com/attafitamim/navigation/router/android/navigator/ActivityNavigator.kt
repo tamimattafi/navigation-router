@@ -16,7 +16,8 @@ open class ActivityNavigator @JvmOverloads constructor(
     override val fragmentManager: FragmentManager = activity.supportFragmentManager,
     override val fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
     override val lifecycleOwner: LifecycleOwner = activity,
-    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null
+    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
+    override val keepAfterLastFragment: Boolean = false
 ) : BaseNavigator() {
 
     override fun exitNavigator() {
