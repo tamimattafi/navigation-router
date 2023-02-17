@@ -42,7 +42,7 @@ class SimpleNavigationBuffer(
 
     override fun setNavigator(navigator: Navigator, navigatorKey: String?) {
         if (navigators.containsKey(navigatorKey)) {
-            throw IllegalArgumentException("A navigator with the key $navigatorKey already exists")
+            pendingCommands[navigatorKey]?.clear()
         }
 
         navigator.setScreenExitCallbackHandler { screen ->
