@@ -1,5 +1,5 @@
 package com.attafitamim.navigation.router.core.handlers
 
-fun interface CurrentScreenExitHandler {
+fun interface ScreenBackPressHandler {
     fun canExitScreen(): Boolean
 }

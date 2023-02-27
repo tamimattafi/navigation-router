@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.common.router.Results
@@ -22,11 +21,17 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
     private val btnComplexResult get() = view?.findViewById<Button>(R.id.btnComplexResult)
     private val btnOpenTopFragment get() = view?.findViewById<Button>(R.id.btnOpenTopFragment)
     private val btnOpenTopDialog get() = view?.findViewById<Button>(R.id.btnOpenTopDialog)
+    private val btnOpenTopDialogSameArgs get() = view?.findViewById<Button>(R.id.btnOpenTopDialogSameArgs)
     private val btnReplaceDialog get() = view?.findViewById<Button>(R.id.btnReplaceDialog)
+    private val btnExit get() = view?.findViewById<Button>(R.id.btnExit)
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Can exit dialog only through button
+        isCancelable = false
+
         txtArgs?.text = arg1
 
         btnResult?.setOnClickListener {
@@ -48,6 +53,14 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
         btnReplaceDialog?.setOnClickListener {
             replaceDialog()
         }
+
+        btnOpenTopDialogSameArgs?.setOnClickListener {
+            openDialogOnTop(newArgs = false)
+        }
+
+        btnExit?.setOnClickListener {
+            ApplicationRouter.instance.exit()
+        }
     }
 
     private fun replaceDialog() {
@@ -55,14 +68,20 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
             Replaced ${javaClass.simpleName}
             Random int: ${Random().nextInt()}
         """.trimIndent()
+
         ApplicationRouter.instance.replaceScreen(NavigationScreen.WithResult(arguments))
     }
 
-    private fun openDialogOnTop() {
-        val arguments = """
+    private fun openDialogOnTop(newArgs: Boolean = true) {
+        val arguments = if (newArgs) {
+            """
             Opened from ${javaClass.simpleName}
             Random int: ${Random().nextInt()}
-        """.trimIndent()
+            """.trimIndent()
+        } else {
+            arg1
+        }
+
         ApplicationRouter.instance.navigateTo(NavigationScreen.WithResult(arguments))
     }
 

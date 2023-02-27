@@ -1,12 +1,11 @@
 package com.attafitamim.navigation.router.base.router
 
 import com.attafitamim.navigation.router.core.commands.Command
-import com.attafitamim.navigation.router.core.global.Disposable
-import com.attafitamim.navigation.router.core.handlers.CurrentScreenExitHandler
-import com.attafitamim.navigation.router.core.screens.Screen
+import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
 import com.attafitamim.navigation.router.core.navigator.NavigationBuffer
 import com.attafitamim.navigation.router.core.result.ResultWire
 import com.attafitamim.navigation.router.core.router.NavigationRouter
+import com.attafitamim.navigation.router.core.screens.Screen
 
 /**
  * Router is the class for high-level navigation.
@@ -76,6 +75,8 @@ open class SimpleNavigationRouter(
 
     override fun setCurrentScreenExitHandler(
         navigatorKey: String?,
-        handler: CurrentScreenExitHandler
-    ): Disposable = navigationBuffer.setCurrentScreenExitHandler(navigatorKey, handler)
+        handler: ScreenBackPressHandler
+    ) {
+        executeCommands(navigatorKey, Command.AddBackPressHandler(handler))
+    }
 }

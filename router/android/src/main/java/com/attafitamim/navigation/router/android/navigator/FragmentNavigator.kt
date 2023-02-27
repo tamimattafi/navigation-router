@@ -10,18 +10,24 @@ import com.attafitamim.navigation.router.android.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 open class FragmentNavigator @JvmOverloads constructor(
-    private val fragment: Fragment,
-    override val containerId: Int,
-    override val screenAdapter: ScreenAdapter<AndroidScreen>,
-    override val fragmentManager: FragmentManager = fragment.childFragmentManager,
-    override val fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
-    override val lifecycleOwner: LifecycleOwner = fragment,
-    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
-    override val keepAfterLastFragment: Boolean = false
-) : BaseNavigator() {
-
-    override val activity: FragmentActivity
-        get() = fragment.requireActivity()
+    fragment: Fragment,
+    containerId: Int,
+    screenAdapter: ScreenAdapter<AndroidScreen>,
+    fragmentManager: FragmentManager = fragment.childFragmentManager,
+    fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
+    lifecycleOwner: LifecycleOwner = fragment,
+    fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
+    keepAfterLastFragment: Boolean = false
+) : BaseNavigator(
+    fragment.requireActivity(),
+    containerId,
+    screenAdapter,
+    fragmentManager,
+    fragmentFactory,
+    lifecycleOwner,
+    fragmentTransactionProcessor,
+    keepAfterLastFragment
+) {
 
     override fun exitNavigator() {
         activity.onBackPressed()

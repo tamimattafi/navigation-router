@@ -36,16 +36,17 @@ class SimpleFragment : Fragment(R.layout.fragment_simple) {
         }
 
         txtResult?.text = resultText
-    }
 
-    override fun onResume() {
-        super.onResume()
-        
         var clickCount = 0
-        var maxClickCount = 2
-        ApplicationRouter.instance.setCurrentScreenExitHandler {
+        val maxClickCount = 2
+        ApplicationRouter.instance.setCurrentScreenExitHandler(MainFragment.NAVIGATOR_KEY) {
             clickCount += 1
-            Toast.makeText(requireContext(), "Press back button ${maxClickCount - clickCount} times to exit", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Press back button ${maxClickCount - clickCount} times to exit",
+                Toast.LENGTH_SHORT
+            ).show()
+
             clickCount == maxClickCount
         }
     }

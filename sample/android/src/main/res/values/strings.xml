@@ -11,4 +11,6 @@
     <string name="label_button_open_top_fragment">Open Fragment On Top</string>
     <string name="label_button_open_top_dialog">Open Dialog On Top</string>
     <string name="label_button_replace_dialog">Replace Dialog</string>
+    <string name="label_button_open_top_dialog_same_args">Open Dialog On Top with same args</string>
+    <string name="label_button_exit">Exit</string>
 </resources>

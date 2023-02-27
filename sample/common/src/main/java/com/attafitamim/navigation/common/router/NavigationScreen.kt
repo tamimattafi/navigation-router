@@ -4,6 +4,8 @@ import com.attafitamim.navigation.router.core.screens.Screen
 
 sealed interface NavigationScreen : Screen {
 
+    object Main : NavigationScreen
+
     object Simple : NavigationScreen
 
     data class WithArguments(

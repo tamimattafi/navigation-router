@@ -10,15 +10,24 @@ import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 open class ActivityNavigator @JvmOverloads constructor(
-    override val activity: FragmentActivity,
-    override val containerId: Int,
-    override val screenAdapter: ScreenAdapter<AndroidScreen>,
-    override val fragmentManager: FragmentManager = activity.supportFragmentManager,
-    override val fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
-    override val lifecycleOwner: LifecycleOwner = activity,
-    override val fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
-    override val keepAfterLastFragment: Boolean = false
-) : BaseNavigator() {
+    activity: FragmentActivity,
+    containerId: Int,
+    screenAdapter: ScreenAdapter<AndroidScreen>,
+    fragmentManager: FragmentManager = activity.supportFragmentManager,
+    fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
+    lifecycleOwner: LifecycleOwner = activity,
+    fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
+    keepAfterLastFragment: Boolean = false
+) : BaseNavigator(
+    activity,
+    containerId,
+    screenAdapter,
+    fragmentManager,
+    fragmentFactory,
+    lifecycleOwner,
+    fragmentTransactionProcessor,
+    keepAfterLastFragment
+) {
 
     override fun exitNavigator() {
         activity.finish()
