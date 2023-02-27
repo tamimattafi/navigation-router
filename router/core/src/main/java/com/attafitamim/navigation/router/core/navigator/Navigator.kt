@@ -6,5 +6,6 @@ import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
 import com.attafitamim.navigation.router.core.screens.Screen
 
 interface Navigator {
+    val currentVisibleScreen: Screen?
     fun applyCommands(commands: Array<out Command>)
 }

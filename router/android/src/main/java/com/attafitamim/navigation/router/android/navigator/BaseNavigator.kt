@@ -31,13 +31,19 @@ abstract class BaseNavigator(
     protected open val keepAfterLastFragment: Boolean
 ) : Navigator {
 
-    protected open val screenHistory = mutableListOf<String>()
-    protected open val initialFragment: Fragment? get() = fragmentManager.fragments.firstOrNull()
-    protected open val initialScreenKey: String? get() = initialFragment?.tag
+    override val currentVisibleScreen: Screen? get() =
+        screenHistory[currentVisibleFragment?.tag]
 
-    protected open val currentVisibleScreenKey: String? get() = currentVisibleFragment?.tag
     protected open val currentVisibleFragment: Fragment? get() =
         fragmentManager.fragments.lastOrNull(Fragment::isVisible)
+
+    protected open val initialFragment: Fragment? get() =
+        fragmentManager.fragments.firstOrNull()
+
+    protected open val initialScreen: Screen? get() =
+        screenHistory[initialFragment?.tag]
+
+    protected open val screenHistory = mutableMapOf<String, Screen>()
 
     protected open lateinit var backPressCallback: OnBackPressedCallback
     protected open val Screen.isVisible get() = key == fragmentManager.fragments.lastOrNull()?.tag
@@ -126,10 +132,10 @@ abstract class BaseNavigator(
     protected open fun dismissOpenDialogs() {
         if (currentVisibleFragment !is DialogFragment) return removeTopDialog()
 
-        val screensToRemove = screenHistory.mapNotNull { screenKey ->
-            val fragment = fragmentManager.findFragmentByTag(screenKey)
+        val screensToRemove = screenHistory.values.mapNotNull { screen ->
+            val fragment = fragmentManager.findFragmentByTag(screen.key)
             if (fragment !is DialogFragment) null
-            else screenKey to fragment
+            else screen to fragment
         }
 
         screensToRemove.forEach { screenPair ->
@@ -138,10 +144,10 @@ abstract class BaseNavigator(
     }
 
     protected open fun removeTopDialog() {
-        val currentVisibleScreenKey = currentVisibleScreenKey ?: return
+        val currentVisibleScreen = currentVisibleScreen ?: return
         val visibleFragment = currentVisibleFragment
         if (visibleFragment is DialogFragment) {
-            removeScreen(currentVisibleScreenKey)
+            removeScreen(currentVisibleScreen)
         }
     }
 
@@ -165,9 +171,9 @@ abstract class BaseNavigator(
     protected open fun replaceFragment(screen: Screen, androidScreen: AndroidScreen.Fragment) {
         dismissOpenDialogs()
 
-        if (!currentVisibleScreenKey.isNullOrBlank()) {
-            notifyRemovingCurrentScreen()
-            fragmentManager.popBackStack(currentVisibleScreenKey, POP_BACK_STACK_INCLUSIVE)
+        if (screenHistory.isNotEmpty()) {
+            notifiyRemovingCurrentScreen()
+            fragmentManager.popBackStack(currentVisibleScreen?.key, POP_BACK_STACK_INCLUSIVE)
         }
 
         commitNewFragmentScreen(screen, androidScreen)
@@ -183,7 +189,7 @@ abstract class BaseNavigator(
     }
 
     protected open fun back() {
-        val visibleScreen = currentVisibleScreenKey
+        val visibleScreen = currentVisibleScreen
 
         when {
             visibleScreen == null ||
@@ -197,33 +203,33 @@ abstract class BaseNavigator(
     }
 
     protected open fun resetScreen(screen: Screen) {
-        removeScreen(screen.key)
-        screenHistory.add(screen.key)
+        removeScreen(screen)
+        screenHistory[screen.key] = screen
     }
 
-    protected open fun removeScreen(screenKey: String) {
-        val fragment = fragmentManager.findFragmentByTag(screenKey) ?: return
-        removeScreen(screenKey, fragment)
+    protected open fun removeScreen(screen: Screen) {
+        val fragment = fragmentManager.findFragmentByTag(screen.key) ?: return
+        removeScreen(screen, fragment)
     }
 
-    protected open fun removeScreen(screenKey: String, fragment: Fragment) {
-        notifyRemovingScreen(screenKey)
+    protected open fun removeScreen(screen: Screen, fragment: Fragment) {
+        notifyRemovingScreen(screen)
 
         when {
             fragment is DialogFragment -> {
                 fragment.dismiss()
-                screenHistory.remove(screenKey)
+                screenHistory.remove(screen.key)
             }
 
-            currentVisibleFragment?.tag == screenKey -> {
-                fragmentManager.popBackStackImmediate(screenKey, POP_BACK_STACK_INCLUSIVE)
-                screenHistory.remove(screenKey)
+            currentVisibleFragment?.tag == screen.key -> {
+                fragmentManager.popBackStackImmediate(screen.key, POP_BACK_STACK_INCLUSIVE)
+                screenHistory.remove(screen.key)
             }
 
-            screenHistory.contains(screenKey) -> {
-                backTo(screenKey)
-                fragmentManager.popBackStackImmediate(screenKey, POP_BACK_STACK_INCLUSIVE)
-                screenHistory.remove(screenKey)
+            screenHistory.containsKey(screen.key) -> {
+                backTo(screen)
+                fragmentManager.popBackStackImmediate(screen.key, POP_BACK_STACK_INCLUSIVE)
+                screenHistory.remove(screen.key)
             }
         }
     }
@@ -284,19 +290,16 @@ abstract class BaseNavigator(
      */
     protected open fun backTo(screen: Screen?) {
         if (screen == null) return backToRoot()
-        backTo(screen.key)
-    }
 
-    protected open fun backTo(screenKey: String) {
-        if (screenHistory.contains(screenKey)) {
-            notifyBackingToScreen(screenKey)
-            fragmentManager.popBackStackImmediate(screenKey, 0)
+        if (screenHistory.contains(screen.key)) {
+            notifyBackingToScreen(screen)
+            fragmentManager.popBackStackImmediate(screen.key, 0)
 
-            while (screenHistory.last() != screenKey) {
-                screenHistory.removeLast()
+            while (screenHistory.values.lastOrNull() != screen) {
+                screenHistory.remove(screenHistory.values.last().key)
             }
         } else {
-            backToUnexisting(screenKey)
+            backToUnexisting(screen)
         }
     }
 
@@ -335,19 +338,19 @@ abstract class BaseNavigator(
         }
     }
 
-    protected open fun notifyRemovingCurrentScreen() {
-        val currentScreenKey = currentVisibleScreenKey
-        if (currentScreenKey != null) notifyRemovingScreen(currentScreenKey)
+    protected open fun notifiyRemovingCurrentScreen() {
+        val currentScreen = currentVisibleScreen
+        if (currentScreen != null) notifyRemovingScreen(currentScreen)
     }
 
-    protected open fun notifyRemovingScreen(screenKey: String) {
-        val isInitial = screenKey == initialScreenKey
-        fragmentTransactionProcessor?.onRemovingScreen(screenKey, isInitial)
+    protected open fun notifyRemovingScreen(screen: Screen) {
+        val isInitial = screen == initialScreen
+        fragmentTransactionProcessor?.onRemovingScreen(screen, isInitial)
     }
 
-    protected open fun notifyBackingToScreen(screenKey: String) {
-        val isInitial = screenKey == initialScreenKey
-        fragmentTransactionProcessor?.onBackingToScreen(screenKey, isInitial)
+    protected open fun notifyBackingToScreen(screen: Screen) {
+        val isInitial = screen == initialScreen
+        fragmentTransactionProcessor?.onBackingToScreen(screen, isInitial)
     }
 
     /**
@@ -370,7 +373,7 @@ abstract class BaseNavigator(
      *
      * @param screen screen
      */
-    protected open fun backToUnexisting(screenKey: String) {
+    protected open fun backToUnexisting(screen: Screen) {
         backToRoot()
     }
 

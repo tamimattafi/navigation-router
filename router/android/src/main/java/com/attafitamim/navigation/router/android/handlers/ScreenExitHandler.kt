@@ -11,12 +11,12 @@ interface FragmentTransactionProcessor {
     ) {}
 
     fun onRemovingScreen(
-        screenKey: String,
+        screen: Screen,
         isInitial: Boolean
     ) {}
 
     fun onBackingToScreen(
-        screenKey: String,
+        screen: Screen,
         isInitial: Boolean
     ) {}
 
