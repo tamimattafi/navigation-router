@@ -17,7 +17,8 @@ open class FragmentNavigator @JvmOverloads constructor(
     fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
     lifecycleOwner: LifecycleOwner = fragment,
     fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
-    keepAfterLastFragment: Boolean = false
+    keepAfterLastFragment: Boolean = false,
+    private val performExit: () -> Unit = fragment.requireActivity()::onBackPressed
 ) : BaseNavigator(
     fragment.requireActivity(),
     containerId,
@@ -30,6 +31,6 @@ open class FragmentNavigator @JvmOverloads constructor(
 ) {
 
     override fun exitNavigator() {
-        activity.onBackPressed()
+        performExit.invoke()
     }
 }

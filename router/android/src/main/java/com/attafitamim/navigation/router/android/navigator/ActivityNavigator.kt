@@ -17,7 +17,8 @@ open class ActivityNavigator @JvmOverloads constructor(
     fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
     lifecycleOwner: LifecycleOwner = activity,
     fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
-    keepAfterLastFragment: Boolean = false
+    keepAfterLastFragment: Boolean = false,
+    private val performExit: () -> Unit = activity::finish
 ) : BaseNavigator(
     activity,
     containerId,
@@ -30,11 +31,11 @@ open class ActivityNavigator @JvmOverloads constructor(
 ) {
 
     override fun exitNavigator() {
-        activity.finish()
+        performExit.invoke()
     }
 
     override fun replaceActivity(screen: Screen, androidScreen: AndroidScreen.Activity) {
         super.replaceActivity(screen, androidScreen)
-        activity.finish()
+        performExit.invoke()
     }
 }
