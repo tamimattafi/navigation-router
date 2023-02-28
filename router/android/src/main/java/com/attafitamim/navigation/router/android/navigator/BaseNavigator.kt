@@ -171,10 +171,8 @@ abstract class BaseNavigator(
     protected open fun replaceFragment(screen: Screen, androidScreen: AndroidScreen.Fragment) {
         dismissOpenDialogs()
 
-        if (screenHistory.isNotEmpty()) {
-            notifiyRemovingCurrentScreen()
-            fragmentManager.popBackStack(currentVisibleScreen?.key, POP_BACK_STACK_INCLUSIVE)
-        }
+        val currentScreen = currentVisibleScreen
+        if (currentScreen != null) removeScreen(currentScreen)
 
         commitNewFragmentScreen(screen, androidScreen)
     }
@@ -222,13 +220,13 @@ abstract class BaseNavigator(
             }
 
             currentVisibleFragment?.tag == screen.key -> {
-                fragmentManager.popBackStackImmediate(screen.key, POP_BACK_STACK_INCLUSIVE)
+                fragmentManager.popBackStack(screen.key, POP_BACK_STACK_INCLUSIVE)
                 screenHistory.remove(screen.key)
             }
 
             screenHistory.containsKey(screen.key) -> {
                 backTo(screen)
-                fragmentManager.popBackStackImmediate(screen.key, POP_BACK_STACK_INCLUSIVE)
+                fragmentManager.popBackStack(screen.key, POP_BACK_STACK_INCLUSIVE)
                 screenHistory.remove(screen.key)
             }
         }
@@ -293,7 +291,7 @@ abstract class BaseNavigator(
 
         if (screenHistory.contains(screen.key)) {
             notifyBackingToScreen(screen)
-            fragmentManager.popBackStackImmediate(screen.key, 0)
+            fragmentManager.popBackStack(screen.key, 0)
 
             while (screenHistory.values.lastOrNull() != screen) {
                 screenHistory.remove(screenHistory.values.last().key)
@@ -307,7 +305,7 @@ abstract class BaseNavigator(
         fragmentTransactionProcessor?.onBackingToRoot()
         dismissOpenDialogs()
         screenHistory.clear()
-        fragmentManager.popBackStackImmediate(null, POP_BACK_STACK_INCLUSIVE)
+        fragmentManager.popBackStack(null, POP_BACK_STACK_INCLUSIVE)
     }
 
     /**
