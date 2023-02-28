@@ -33,9 +33,4 @@ open class ActivityNavigator @JvmOverloads constructor(
     override fun exitNavigator() {
         performExit.invoke()
     }
-
-    override fun replaceActivity(screen: Screen, androidScreen: AndroidScreen.Activity) {
-        super.replaceActivity(screen, androidScreen)
-        performExit.invoke()
-    }
 }
