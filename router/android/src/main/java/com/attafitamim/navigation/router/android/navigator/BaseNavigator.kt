@@ -37,16 +37,21 @@ abstract class BaseNavigator(
     protected open val currentVisibleFragment: Fragment? get() =
         fragmentManager.fragments.lastOrNull(Fragment::isVisible)
 
-    protected open val initialFragment: Fragment? get() =
-        fragmentManager.fragments.firstOrNull()
-
     protected open val initialScreen: Screen? get() =
         screenHistory[initialFragment?.tag]
 
-    protected open val screenHistory = mutableMapOf<String, Screen>()
+    protected open val initialFragment: Fragment? get() =
+        fragmentManager.fragments.firstOrNull()
 
+    protected open val topScreen: Screen? get() =
+        screenHistory[topFragment?.tag]
+
+    protected open val topFragment: Fragment? get() =
+        fragmentManager.fragments.lastOrNull()
+
+    protected open val screenHistory = mutableMapOf<String, Screen>()
     protected open lateinit var backPressCallback: OnBackPressedCallback
-    protected open val Screen.isVisible get() = key == fragmentManager.fragments.lastOrNull()?.tag
+
 
     init {
         setupBackPressListener()
@@ -236,10 +241,19 @@ abstract class BaseNavigator(
         screen: Screen,
         fragmentScreen: AndroidScreen.Fragment
     ) {
-        if (screen.isVisible) return
-        resetScreen(screen)
+        val topFragment = when (screen) {
+            currentVisibleScreen -> return
+            topScreen -> topFragment
+            else -> null
+        }
 
-        val fragment = fragmentScreen.createFragment(fragmentFactory)
+        val fragment = if (topFragment == null) {
+            resetScreen(screen)
+            fragmentScreen.createFragment(fragmentFactory)
+        } else {
+            topFragment
+        }
+
         val transaction = fragmentManager.beginTransaction()
         fragmentTransactionProcessor?.onAttachingFragment(
             transaction,
@@ -261,17 +275,24 @@ abstract class BaseNavigator(
         }
 
         transaction.addToBackStack(screen.key)
-
         transaction.commit()
     }
 
     protected open fun openNewDialogScreen(screen: Screen, dialogScreen: AndroidScreen.Dialog) {
-        if (screen.isVisible) return
-        resetScreen(screen)
+        val topDialog = when (screen) {
+            currentVisibleScreen -> return
+            topScreen -> topFragment as? DialogFragment
+            else -> null
+        }
 
-        val dialog = dialogScreen.createDialog(fragmentFactory)
+        val dialog = if (topDialog == null) {
+            resetScreen(screen)
+            dialogScreen.createDialog(fragmentFactory)
+        } else {
+            topDialog
+        }
+
         dialog.showNow(fragmentManager, screen.key)
-
         dialog.dialog?.setOnKeyListener { _, keyCode, event ->
             val shouldHandle = keyCode == KeyEvent.KEYCODE_BACK
                     && event.action == KeyEvent.ACTION_UP
@@ -334,11 +355,6 @@ abstract class BaseNavigator(
         } catch (e: ActivityNotFoundException) {
             unexistingActivity(screen, activityScreen, activityIntent)
         }
-    }
-
-    protected open fun notifiyRemovingCurrentScreen() {
-        val currentScreen = currentVisibleScreen
-        if (currentScreen != null) notifyRemovingScreen(currentScreen)
     }
 
     protected open fun notifyRemovingScreen(screen: Screen) {
