@@ -279,18 +279,13 @@ abstract class BaseNavigator(
     }
 
     protected open fun openNewDialogScreen(screen: Screen, dialogScreen: AndroidScreen.Dialog) {
-        val topDialog = when (screen) {
+        when (screen) {
             currentVisibleScreen -> return
-            topScreen -> topFragment as? DialogFragment
-            else -> null
+            topScreen -> return
         }
 
-        val dialog = if (topDialog == null) {
-            resetScreen(screen)
-            dialogScreen.createDialog(fragmentFactory)
-        } else {
-            topDialog
-        }
+        resetScreen(screen)
+        val dialog = dialogScreen.createDialog(fragmentFactory)
 
         dialog.showNow(fragmentManager, screen.key)
         dialog.dialog?.setOnKeyListener { _, keyCode, event ->
