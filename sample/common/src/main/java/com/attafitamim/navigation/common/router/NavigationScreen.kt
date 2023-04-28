@@ -8,6 +8,8 @@ sealed interface NavigationScreen : Screen {
 
     object Simple : NavigationScreen
 
+    object Loading : NavigationScreen
+
     data class WithArguments(
         val arg1: String,
         val arg2: String

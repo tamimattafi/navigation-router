@@ -41,6 +41,13 @@ open class SimpleNavigationRouter(
         )
     }
 
+    override fun removeScreen(screen: Screen, navigatorKey: String?) {
+        executeCommands(
+            navigatorKey,
+            Command.Remove(screen)
+        )
+    }
+
     override fun backTo(screen: Screen?, navigatorKey: String?) {
         executeCommands(
             navigatorKey,

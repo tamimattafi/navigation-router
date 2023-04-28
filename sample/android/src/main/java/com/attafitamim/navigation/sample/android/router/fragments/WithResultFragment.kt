@@ -91,26 +91,41 @@ class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {
     }
 
     private fun publishResult() {
+        ApplicationRouter.instance.navigateTo(NavigationScreen.Loading)
+
         val result = """
                 Some result from ${javaClass.simpleName}
                 Random int: ${Random().nextInt()}
             """.trimIndent()
 
-        ApplicationRouter.instance.apply {
-            exit()
-            sendResult(Results.OnResultKey, result)
-        }
+        requireView().postDelayed({
+            ApplicationRouter.instance.apply {
+                removeScreen(NavigationScreen.Loading)
+                exit()
+                sendResult(Results.OnResultKey, result)
+            }
+        }, RESULT_DELAY)
     }
 
     private fun publishComplexResult() {
+        ApplicationRouter.instance.navigateTo(NavigationScreen.Loading)
+
         val complexResult = Results.ComplexResult(
             p1 = "Some argument from ${javaClass.simpleName}",
             p2 = "Random int: ${Random().nextInt()}"
         )
 
-        ApplicationRouter.instance.apply {
-            exit()
-            sendResult(Results.OnComplexResultKey, complexResult)
-        }
+        requireView().postDelayed({
+            ApplicationRouter.instance.apply {
+                removeScreen(NavigationScreen.Loading)
+                exit()
+                sendResult(Results.OnComplexResultKey, complexResult)
+            }
+        }, RESULT_DELAY_COMPLEX)
+    }
+
+    private companion object {
+        const val RESULT_DELAY = 1000L
+        const val RESULT_DELAY_COMPLEX = 5000L
     }
 }

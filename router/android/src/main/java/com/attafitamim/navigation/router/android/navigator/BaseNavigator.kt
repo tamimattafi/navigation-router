@@ -114,6 +114,7 @@ abstract class BaseNavigator(
             is Command.BackTo -> backTo(command.screen)
             is Command.Back -> back()
             is Command.AddBackPressHandler -> setCurrentScreenBackPressHandler(command.handler)
+            is Command.Remove -> remove(command.screen)
         }
     }
 
@@ -191,16 +192,21 @@ abstract class BaseNavigator(
         applyCommand(Command.Back)
     }
 
+    protected open fun remove(screen: Screen) {
+        if (!screenHistory.containsValue(screen)) return
+
+        when {
+            screenHistory.size > 1 || keepAfterLastFragment -> removeScreen(screen)
+            else -> releaseNavigator()
+        }
+    }
+
     protected open fun back() {
         val visibleScreen = currentVisibleScreen
 
         when {
-            visibleScreen == null ||
-                    screenHistory.isEmpty() -> releaseNavigator()
-
-            screenHistory.size > 1 ||
-                    keepAfterLastFragment -> removeScreen(visibleScreen)
-
+            visibleScreen == null || screenHistory.isEmpty() -> releaseNavigator()
+            screenHistory.size > 1 || keepAfterLastFragment -> removeScreen(visibleScreen)
             else -> releaseNavigator()
         }
     }

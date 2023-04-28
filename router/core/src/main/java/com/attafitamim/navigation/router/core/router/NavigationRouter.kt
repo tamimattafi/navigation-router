@@ -38,6 +38,15 @@ interface NavigationRouter : Router {
     fun replaceScreen(screen: Screen, navigatorKey: String? = null)
 
     /**
+     * Removes screen from the foreground or the backstack.
+     *
+     * @param screen screen to be removed
+     * @param navigatorKey navigator that should be used to handle the screen
+     *
+     */
+    fun removeScreen(screen: Screen, navigatorKey: String? = null)
+
+    /**
      * Return fragmentBack to the needed screen from the chain.
      *
      * Behavior in the case when no needed screens found depends on
