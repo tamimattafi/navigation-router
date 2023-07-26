@@ -1,5 +1,6 @@
 package com.attafitamim.navigation.sample.android.router.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -23,6 +24,7 @@ class SimpleFragment : Fragment(R.layout.fragment_simple) {
 
     private val btnWithResult get() = view?.findViewById<Button>(R.id.btnResultScreen)
     private val btnWithArguments get() = view?.findViewById<Button>(R.id.btnArgumentsScreen)
+    private val btnPlayStore get() = view?.findViewById<Button>(R.id.btnPlayStore)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,6 +35,10 @@ class SimpleFragment : Fragment(R.layout.fragment_simple) {
 
         btnWithResult?.setOnClickListener {
             openResultScreen()
+        }
+
+        btnPlayStore?.setOnClickListener {
+            openPlayStoreScreen()
         }
 
         txtResult?.text = resultText
@@ -49,6 +55,10 @@ class SimpleFragment : Fragment(R.layout.fragment_simple) {
 
             clickCount == maxClickCount
         }
+    }
+
+    private fun openPlayStoreScreen() {
+        ApplicationRouter.instance.navigateTo(NavigationScreen.PlayMarket)
     }
 
     private fun openArgumentsScreen() {

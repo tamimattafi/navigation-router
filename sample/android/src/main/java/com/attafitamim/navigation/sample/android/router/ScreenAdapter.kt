@@ -1,5 +1,8 @@
 package com.attafitamim.navigation.sample.android.router
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.android.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.screens.Screen
@@ -42,6 +45,29 @@ object ScreenAdapter : ScreenAdapter<AndroidScreen> {
             is NavigationScreen.WithResult -> AndroidScreen.Dialog {
                 WithResultFragment().apply {
                     arg1 = navigationScreen.arg1
+                }
+            }
+
+            is NavigationScreen.PlayMarket -> {
+                val packageName = "com.android.vending"
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    AndroidScreen.Sender(
+                        code = 0,
+                        fillIntent = null,
+                        onFinish = null,
+                        handler = null
+                    ) { context ->
+                        context.packageManager.getLaunchIntentSenderForPackage(packageName)
+                    }
+                } else {
+                    AndroidScreen.Activity { context ->
+                        val fallbackUri = Uri.parse("https://play.google.com/store")
+                        val fallBackIntent = Intent(Intent.ACTION_VIEW, fallbackUri)
+
+                        context.packageManager.getLaunchIntentForPackage(packageName)
+                            ?: fallBackIntent
+                    }
                 }
             }
         }

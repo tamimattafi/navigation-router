@@ -2,6 +2,7 @@ package com.attafitamim.navigation.router.android.navigator
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.IntentSender
 import android.view.KeyEvent
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.DialogFragment
@@ -123,11 +124,16 @@ abstract class BaseNavigator(
             is AndroidScreen.Activity -> forwardActivity(screen, androidScreen)
             is AndroidScreen.Fragment -> forwardFragment(screen, androidScreen)
             is AndroidScreen.Dialog -> forwardDialog(screen, androidScreen)
+            is AndroidScreen.Sender -> forwardSender(screen, androidScreen)
         }
     }
 
     protected open fun forwardActivity(screen: Screen, androidScreen: AndroidScreen.Activity) {
         checkAndStartActivity(screen, androidScreen)
+    }
+
+    protected open fun forwardSender(screen: Screen, androidScreen: AndroidScreen.Sender) {
+        checkAndSendIntent(screen, androidScreen)
     }
 
     protected open fun forwardFragment(screen: Screen, androidScreen: AndroidScreen.Fragment) {
@@ -166,11 +172,17 @@ abstract class BaseNavigator(
             is AndroidScreen.Activity -> replaceActivity(screen, androidScreen)
             is AndroidScreen.Fragment -> replaceFragment(screen, androidScreen)
             is AndroidScreen.Dialog -> replaceDialog(screen, androidScreen)
+            is AndroidScreen.Sender -> replaceSender(screen, androidScreen)
         }
     }
 
     protected open fun replaceActivity(screen: Screen, androidScreen: AndroidScreen.Activity) {
         checkAndStartActivity(screen, androidScreen)
+        releaseNavigator()
+    }
+
+    protected open fun replaceSender(screen: Screen, androidScreen: AndroidScreen.Sender) {
+        checkAndSendIntent(screen, androidScreen)
         releaseNavigator()
     }
 
@@ -358,6 +370,21 @@ abstract class BaseNavigator(
         }
     }
 
+    protected open fun checkAndSendIntent(screen: Screen, senderScreen: AndroidScreen.Sender) {
+        val intentSender = senderScreen.createIntentSender(activity)
+        try {
+            intentSender.sendIntent(
+                activity,
+                senderScreen.code,
+                senderScreen.fillIntent,
+                senderScreen.onFinish,
+                senderScreen.handler
+            )
+        } catch (e: ActivityNotFoundException) {
+            unexistingIntentSender(screen, senderScreen, intentSender)
+        }
+    }
+
     protected open fun notifyRemovingScreen(screen: Screen) {
         val isInitial = screen == initialScreen
         fragmentTransactionProcessor?.onRemovingScreen(screen, isInitial)
@@ -378,6 +405,20 @@ abstract class BaseNavigator(
         screen: Screen,
         activityScreen: AndroidScreen.Activity,
         activityIntent: Intent
+    ) {
+        // Do nothing by default
+    }
+
+    /**
+     * Called when there is no intent to open `tag`.
+     *
+     * @param screen         screen
+     * @param intentSender intent sender used to start intent for the `tag`
+     */
+    protected open fun unexistingIntentSender(
+        screen: Screen,
+        senderScreen: AndroidScreen.Sender,
+        intentSender: IntentSender
     ) {
         // Do nothing by default
     }

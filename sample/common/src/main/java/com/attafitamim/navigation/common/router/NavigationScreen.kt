@@ -22,4 +22,6 @@ sealed interface NavigationScreen : Screen {
     data class WithComplexResult(
         val arg1: String
     ) : NavigationScreen
+
+    object PlayMarket : NavigationScreen
 }

@@ -14,4 +14,5 @@
     <string name="label_button_open_top_dialog_same_args">Open Dialog On Top with same args</string>
     <string name="label_button_exit">Exit</string>
     <string name="title_screen_loading">Loading Fragment</string>
+    <string name="title_screen_play_store">Play Store</string>
 </resources>

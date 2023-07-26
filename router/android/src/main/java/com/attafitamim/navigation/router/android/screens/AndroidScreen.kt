@@ -1,8 +1,12 @@
 package com.attafitamim.navigation.router.android.screens
 
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment as AndroidFragment
 import androidx.fragment.app.FragmentFactory
@@ -22,6 +26,31 @@ sealed interface AndroidScreen : PlatformScreen {
             ) = object : Activity {
                 override val startActivityOptions = startActivityOptions
                 override fun createIntent(context: Context) = intentCreator.create(context)
+            }
+        }
+    }
+
+    interface Sender : AndroidScreen {
+        val code: Int get() = 0
+        val onFinish: IntentSender.OnFinished? get() = null
+        val handler: Handler? get() = null
+        val fillIntent: Intent? get() = null
+        fun createIntentSender(context: Context): IntentSender
+        companion object {
+            operator fun invoke(
+                code: Int = 0,
+                fillIntent: Intent?,
+                onFinish: IntentSender.OnFinished? = null,
+                handler: Handler? = null,
+                intentSenderCreator: ScreenCreator<Context, IntentSender>
+            ) = object : Sender {
+                override val code: Int = code
+                override val fillIntent: Intent? = fillIntent
+                override val onFinish: IntentSender.OnFinished? = onFinish
+                override val handler: Handler? = handler
+
+                override fun createIntentSender(context: Context): IntentSender =
+                    intentSenderCreator.create(context)
             }
         }
     }
