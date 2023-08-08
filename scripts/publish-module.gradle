@@ -4,7 +4,7 @@ apply plugin: 'org.jetbrains.dokka'
 
 ext {
     PUBLISH_GROUP_ID = 'com.attafitamim.navigation'
-    PUBLISH_VERSION = '1.5.0'
+    PUBLISH_VERSION = '2.0.0'
 }
 
 task projectSourcesJar(type: Jar) {

@@ -4,9 +4,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
-import com.attafitamim.navigation.router.android.handlers.FragmentTransactionProcessor
+import com.attafitamim.navigation.router.android.handlers.ActivityNavigationDelegate
+import com.attafitamim.navigation.router.android.handlers.NavigationDelegate
 import com.attafitamim.navigation.router.android.screens.AndroidScreen
-import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 open class ActivityNavigator @JvmOverloads constructor(
@@ -16,9 +16,7 @@ open class ActivityNavigator @JvmOverloads constructor(
     fragmentManager: FragmentManager = activity.supportFragmentManager,
     fragmentFactory: FragmentFactory = fragmentManager.fragmentFactory,
     lifecycleOwner: LifecycleOwner = activity,
-    fragmentTransactionProcessor: FragmentTransactionProcessor? = null,
-    keepAfterLastFragment: Boolean = false,
-    private val performExit: () -> Unit = activity::finish
+    navigationDelegate: NavigationDelegate = ActivityNavigationDelegate.defaultInstance()
 ) : BaseNavigator(
     activity,
     containerId,
@@ -26,11 +24,5 @@ open class ActivityNavigator @JvmOverloads constructor(
     fragmentManager,
     fragmentFactory,
     lifecycleOwner,
-    fragmentTransactionProcessor,
-    keepAfterLastFragment
-) {
-
-    override fun exitNavigator() {
-        performExit.invoke()
-    }
-}
+    navigationDelegate
+)

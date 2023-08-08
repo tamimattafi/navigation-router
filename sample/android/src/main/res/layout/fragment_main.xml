@@ -2,16 +2,15 @@
 <RelativeLayout
     android:background="@color/black"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".router.MainActivity">
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/txtDescription"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:text="Main Fragment Container"
+        android:textColor="@android:color/white"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true" />

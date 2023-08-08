@@ -1,9 +1,16 @@
 package com.attafitamim.navigation.router.android.handlers
 
+import android.app.Activity
 import androidx.fragment.app.FragmentTransaction
+import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.screens.Screen
 
-interface FragmentTransactionProcessor {
+interface NavigationDelegate {
+
+    fun performExit(activity: Activity)
+
+    fun shouldApplyCommand(command: Command): Boolean = true
+
     fun onAttachingFragment(
         transaction: FragmentTransaction,
         screen: Screen,
@@ -21,4 +28,6 @@ interface FragmentTransactionProcessor {
     ) {}
 
     fun onBackingToRoot() {}
+
+    fun keepAfterLastScreen(lastScreen: Screen): Boolean = false
 }

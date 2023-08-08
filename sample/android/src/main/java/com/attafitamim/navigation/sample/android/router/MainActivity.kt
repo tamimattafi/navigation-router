@@ -4,12 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.android.handlers.FragmentTransactionProcessor
+import com.attafitamim.navigation.router.android.handlers.ActivityNavigationDelegate
 import com.attafitamim.navigation.router.android.navigator.ActivityNavigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.sample.android.R
 
-class MainActivity : AppCompatActivity(), FragmentTransactionProcessor {
+class MainActivity : AppCompatActivity(), ActivityNavigationDelegate {
 
     // Better save such state in the VM to survive configuration changes
     private var isInitialized = false
@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity(), FragmentTransactionProcessor {
             this,
             R.id.fragmentContainer,
             ScreenAdapter,
-            fragmentTransactionProcessor = this
+            navigationDelegate = this
         )
     }
 

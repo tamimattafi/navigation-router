@@ -13,7 +13,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LifecycleOwner
-import com.attafitamim.navigation.router.android.handlers.FragmentTransactionProcessor
+import com.attafitamim.navigation.router.android.handlers.NavigationDelegate
 import com.attafitamim.navigation.router.android.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
@@ -28,8 +28,7 @@ abstract class BaseNavigator(
     protected open val fragmentManager: FragmentManager,
     protected open val fragmentFactory: FragmentFactory,
     protected open val lifecycleOwner: LifecycleOwner,
-    protected open val fragmentTransactionProcessor: FragmentTransactionProcessor?,
-    protected open val keepAfterLastFragment: Boolean
+    protected open val navigationDelegate: NavigationDelegate
 ) : Navigator {
 
     override val currentVisibleScreen: Screen? get() =
@@ -58,18 +57,26 @@ abstract class BaseNavigator(
         setupBackPressListener()
     }
 
-    protected abstract fun exitNavigator()
-
     override fun applyCommands(commands: Array<out Command>) {
         fragmentManager.executePendingTransactions()
 
         for (command in commands) {
+            tryApplyCommand(command)
+        }
+    }
+
+    protected open fun tryApplyCommand(command: Command) {
+        if (navigationDelegate.shouldApplyCommand(command)) {
             try {
                 applyCommand(command)
             } catch (e: RuntimeException) {
                 errorOnApplyCommand(command, e)
             }
         }
+    }
+
+    protected open fun exitNavigator() {
+        navigationDelegate.performExit(activity)
     }
 
     protected open fun releaseNavigator() {
@@ -201,14 +208,17 @@ abstract class BaseNavigator(
     }
 
     protected open fun performBackPress() {
-        applyCommand(Command.Back)
+        tryApplyCommand(Command.Back)
     }
 
     protected open fun remove(screen: Screen) {
         if (!screenHistory.containsValue(screen)) return
 
         when {
-            screenHistory.size > 1 || keepAfterLastFragment -> removeScreen(screen)
+            screenHistory.size > 1 || navigationDelegate.keepAfterLastScreen(screen) -> {
+                removeScreen(screen)
+            }
+
             else -> releaseNavigator()
         }
     }
@@ -217,8 +227,14 @@ abstract class BaseNavigator(
         val visibleScreen = currentVisibleScreen
 
         when {
-            visibleScreen == null || screenHistory.isEmpty() -> releaseNavigator()
-            screenHistory.size > 1 || keepAfterLastFragment -> removeScreen(visibleScreen)
+            visibleScreen == null || screenHistory.isEmpty() -> {
+                releaseNavigator()
+            }
+
+            screenHistory.size > 1 || navigationDelegate.keepAfterLastScreen(visibleScreen) -> {
+                removeScreen(visibleScreen)
+            }
+
             else -> releaseNavigator()
         }
     }
@@ -273,7 +289,7 @@ abstract class BaseNavigator(
         }
 
         val transaction = fragmentManager.beginTransaction()
-        fragmentTransactionProcessor?.onAttachingFragment(
+        navigationDelegate.onAttachingFragment(
             transaction,
             screen,
             fragmentManager.fragments.isEmpty()
@@ -336,7 +352,7 @@ abstract class BaseNavigator(
     }
 
     protected open fun backToRoot() {
-        fragmentTransactionProcessor?.onBackingToRoot()
+        navigationDelegate.onBackingToRoot()
         dismissOpenDialogs()
         screenHistory.clear()
         fragmentManager.popBackStack(null, POP_BACK_STACK_INCLUSIVE)
@@ -387,12 +403,12 @@ abstract class BaseNavigator(
 
     protected open fun notifyRemovingScreen(screen: Screen) {
         val isInitial = screen == initialScreen
-        fragmentTransactionProcessor?.onRemovingScreen(screen, isInitial)
+        navigationDelegate.onRemovingScreen(screen, isInitial)
     }
 
     protected open fun notifyBackingToScreen(screen: Screen) {
         val isInitial = screen == initialScreen
-        fragmentTransactionProcessor?.onBackingToScreen(screen, isInitial)
+        navigationDelegate.onBackingToScreen(screen, isInitial)
     }
 
     /**
