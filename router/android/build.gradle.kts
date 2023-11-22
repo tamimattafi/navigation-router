@@ -1,18 +1,15 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.android.library)
+    id(libs.plugins.convention.plugin.get().pluginId)
 }
 
-ext.set("PUBLISH_ARTIFACT_ID", "router-android")
-apply(from = "${rootProject.projectDir}/scripts/publish-module.gradle")
-
 android {
-    compileSdk = 33
+    compileSdk = 34
+    namespace = "com.attafitamim.navigation.router.android"
 
     defaultConfig {
         minSdk = 16
-        targetSdk = 33
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -28,18 +25,22 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlin {
+        jvmToolchain(17)
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("com.google.android.material:material:1.6.0")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.10.0")
     api(project(":router:base"))
 }

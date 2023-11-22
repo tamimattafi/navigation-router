@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     name: Release build and publish
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: adopt
-          java-version: 11
+          java-version: 17
 
       - name: Build Core
         run: ./gradlew :router:core:assemble
@@ -25,10 +25,7 @@ jobs:
         run: ./gradlew :router:base:assemble
 
       - name: Build Android
-        run: ./gradlew :router:android:assemble
-
-      - name: Source jar
-        run: ./gradlew projectSourcesJar javadocJar
+        run: ./gradlew :router:base:assemble
 
         # Runs upload, and then closes & releases the repository
       - name: Publish to MavenCentral

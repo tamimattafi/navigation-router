@@ -1,13 +1,21 @@
 plugins {
-    id("java-library")
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+kotlin {
+    jvm()
+    js {
+        browser()
+    }
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
-dependencies {
-    implementation(project(":router:core"))
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                api(project(":router:core"))
+            }
+        }
+    }
 }

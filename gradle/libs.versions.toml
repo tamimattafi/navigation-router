@@ -1,0 +1,27 @@
+[versions]
+android-gradle-plugin = "8.1.4"
+kotlin = "1.9.20"
+dokka = "1.9.10"
+nexus = "1.1.0"
+
+[libraries]
+
+[plugins]
+# Android
+android-application = { id = "com.android.application", version.ref = "android_gradle_plugin" }
+android-library = { id = "com.android.library", version.ref = "android_gradle_plugin" }
+
+# Kotlin Multiplatform
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-native-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+
+# Docs
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+
+# Publishing
+convention-plugin = { id = "convention.publication" }
+publish-root = { id = "publish.root" }
+nexus = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
