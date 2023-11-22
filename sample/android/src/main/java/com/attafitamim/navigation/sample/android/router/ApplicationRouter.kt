@@ -5,6 +5,7 @@ import android.os.Looper
 import com.attafitamim.navigation.router.base.navigator.SimpleNavigationBuffer
 import com.attafitamim.navigation.router.base.result.SimpleResultWire
 import com.attafitamim.navigation.router.base.router.SimpleNavigationRouter
+import com.attafitamim.navigation.router.core.commands.MessageHandler
 import com.attafitamim.navigation.router.core.navigator.NavigatorHolder
 import com.attafitamim.navigation.router.core.router.NavigationRouter
 
@@ -30,12 +31,19 @@ object ApplicationRouter {
     }
 
     // Initialize only once for the router
+    private val messageHandler by lazy {
+        MessageHandler { action ->
+            transitionHandler.post(action)
+        }
+    }
+
+    // Initialize only once for the router
     private val resultWire by lazy {
-        SimpleResultWire(transitionHandler::post)
+        SimpleResultWire(messageHandler)
     }
 
     // Initialize only once for the router
     private val navigationBuffer by lazy {
-        SimpleNavigationBuffer(transitionHandler::post)
+        SimpleNavigationBuffer(messageHandler)
     }
 }
