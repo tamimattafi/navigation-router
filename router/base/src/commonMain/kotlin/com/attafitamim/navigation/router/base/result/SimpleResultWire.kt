@@ -22,6 +22,7 @@ class SimpleResultWire(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T> sendResult(key: ResultKey<T>, data: T) {
         messageHandler.post {
             val listener = listeners.remove(key) as? ResultListener<T> ?: return@post
