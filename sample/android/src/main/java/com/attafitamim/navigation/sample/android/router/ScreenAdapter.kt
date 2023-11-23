@@ -4,7 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.android.screens.AndroidScreen
+import com.attafitamim.navigation.router.platform.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 import com.attafitamim.navigation.sample.android.router.fragments.LoadingFragment

@@ -18,14 +18,14 @@ jobs:
           distribution: adopt
           java-version: 17
 
-      - name: Build Core
+      - name: Build Router
         run: ./gradlew :router:core:assemble
 
       - name: Build Base
         run: ./gradlew :router:base:assemble
 
-      - name: Build Android
-        run: ./gradlew :router:base:assemble
+      - name: Build Platform
+        run: ./gradlew :router:platform:assemble
 
         # Runs upload, and then closes & releases the repository
       - name: Publish to MavenCentral

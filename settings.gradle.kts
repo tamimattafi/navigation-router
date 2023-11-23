@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "navigation-router"
 include(":router:core")
 include(":router:base")
-include(":router:android")
+include(":router:platform")
 include(":sample:android")
 include(":sample:common")
 

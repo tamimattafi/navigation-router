@@ -4,8 +4,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.android.handlers.ActivityNavigationDelegate
-import com.attafitamim.navigation.router.android.navigator.ActivityNavigator
+import com.attafitamim.navigation.router.platform.handlers.ActivityNavigationDelegate
+import com.attafitamim.navigation.router.platform.navigator.ActivityNavigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.sample.android.R
 

@@ -5,8 +5,8 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.android.handlers.FragmentNavigationDelegate
-import com.attafitamim.navigation.router.android.navigator.FragmentNavigator
+import com.attafitamim.navigation.router.platform.handlers.FragmentNavigationDelegate
+import com.attafitamim.navigation.router.platform.navigator.FragmentNavigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.sample.android.R
 import com.attafitamim.navigation.sample.android.router.ApplicationRouter
