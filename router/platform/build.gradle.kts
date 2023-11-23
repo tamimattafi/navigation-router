@@ -7,7 +7,7 @@ plugins {
 }
 
 kotlin {
-    targetHierarchy.default()
+    jvmToolchain(8)
     jvm()
 
     js {
@@ -34,7 +34,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":router:base"))
+                api(project(libs.router.base.get().module.name))
             }
         }
 
@@ -46,6 +46,11 @@ kotlin {
             }
         }
     }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 }
 
 android {
@@ -53,5 +58,10 @@ android {
     compileSdk = 34
     defaultConfig {
         minSdk = 16
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }

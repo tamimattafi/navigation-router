@@ -4,6 +4,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(8)
+
     jvm()
     js {
         browser()
@@ -15,8 +17,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":router:core"))
+                api(project(libs.router.core.get().module.name))
             }
         }
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }

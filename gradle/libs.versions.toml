@@ -6,6 +6,11 @@ nexus = "1.1.0"
 
 [libraries]
 
+# Local
+router-core = { group = "_", name = ":router:core" }
+router-base = { group = "_", name = ":router:base" }
+router-platform = { group = "_", name = ":router:platform" }
+
 [plugins]
 # Android
 android-application = { id = "com.android.application", version.ref = "android_gradle_plugin" }

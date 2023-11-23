@@ -4,6 +4,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(8)
+
     jvm()
     js {
         browser()
@@ -13,6 +15,13 @@ kotlin {
     iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {  }
+        }
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
