@@ -3,7 +3,7 @@ name: Publish
 on:
   release:
     # We'll run this workflow when a new GitHub release is created
-    types: [released]
+    types: [published]
 
 jobs:
   publish:
@@ -26,6 +26,9 @@ jobs:
 
       - name: Build Platform
         run: ./gradlew :router:platform:assemble
+
+      - name: Build Compose
+        run: ./gradlew :router:compose:assemble
 
         # Runs upload, and then closes & releases the repository
       - name: Publish to MavenCentral
