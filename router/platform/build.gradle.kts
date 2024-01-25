@@ -7,7 +7,8 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(8)
+    applyDefaultHierarchyTemplate()
+    jvmToolchain(17)
     jvm()
 
     js {
@@ -21,7 +22,7 @@ kotlin {
     androidTarget {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = "17"
             }
         }
 
@@ -34,7 +35,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(libs.router.base.get().module.name))
+                api(projects.router.base)
             }
         }
 
@@ -48,8 +49,8 @@ kotlin {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -61,7 +62,7 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }

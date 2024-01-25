@@ -11,10 +11,15 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    @Suppress("OPT_IN_USAGE")
+    wasmJs {
+        binaries.executable()
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":router:core"))
+                api(projects.router.base)
             }
         }
     }

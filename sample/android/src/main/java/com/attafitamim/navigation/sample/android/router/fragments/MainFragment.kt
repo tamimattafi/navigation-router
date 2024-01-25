@@ -10,7 +10,7 @@ import com.attafitamim.navigation.router.platform.navigator.FragmentNavigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.sample.android.R
 import com.attafitamim.navigation.sample.android.router.ApplicationRouter
-import com.attafitamim.navigation.sample.android.router.ScreenAdapter
+import com.attafitamim.navigation.sample.android.router.AndroidScreenAdapter
 
 class MainFragment : Fragment(R.layout.fragment_main), FragmentNavigationDelegate {
 
@@ -22,7 +22,7 @@ class MainFragment : Fragment(R.layout.fragment_main), FragmentNavigationDelegat
         FragmentNavigator(
             this,
             R.id.fragmentContainer,
-            ScreenAdapter,
+            AndroidScreenAdapter,
             navigationDelegate = this
         )
     }

@@ -9,7 +9,7 @@ import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.common.router.Results
 import com.attafitamim.navigation.sample.android.R
 import com.attafitamim.navigation.sample.android.router.ApplicationRouter
-import com.attafitamim.navigation.sample.android.utls.argumentsString
+import com.attafitamim.navigation.sample.android.utils.argumentsString
 import java.util.*
 
 class WithResultFragment : DialogFragment(R.layout.fragment_with_result) {

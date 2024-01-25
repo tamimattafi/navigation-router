@@ -1,14 +1,20 @@
+@file:Suppress("OPT_IN_USAGE")
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     id(libs.plugins.convention.plugin.get().pluginId)
 }
 
 kotlin {
-    jvmToolchain(8)
+    applyDefaultHierarchyTemplate()
+    jvmToolchain(17)
 
     jvm()
     js {
         browser()
+    }
+    wasmJs {
+        binaries.executable()
     }
     iosX64()
     iosArm64()
@@ -17,13 +23,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(libs.router.core.get().module.name))
+                api(projects.router.core)
             }
         }
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }

@@ -1,7 +1,5 @@
-package com.attafitamim.navigation.sample.android.router
+package com.attafitamim.navigation.common.router
 
-import android.os.Handler
-import android.os.Looper
 import com.attafitamim.navigation.router.base.navigator.SimpleNavigationBuffer
 import com.attafitamim.navigation.router.base.result.SimpleResultWire
 import com.attafitamim.navigation.router.base.router.SimpleNavigationRouter
@@ -25,15 +23,11 @@ object ApplicationRouter {
 
     private var actualInstance: NavigationRouter? = null
 
-    // Commands handler
-    private val transitionHandler by lazy {
-        Handler(Looper.getMainLooper())
-    }
-
     // Initialize only once for the router
     private val messageHandler by lazy {
         MessageHandler { action ->
-            transitionHandler.post(action)
+            // Maybe ensure that the call is on main thread
+            action.invoke()
         }
     }
 

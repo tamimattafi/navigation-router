@@ -2,7 +2,7 @@ package com.attafitamim.navigation.router.platform.handlers
 
 import android.app.Activity
 
-interface ActivityNavigationDelegate : NavigationDelegate {
+interface ActivityNavigationDelegate : AndroidNavigationDelegate {
 
     override fun performExit(activity: Activity) = activity.finish()
 

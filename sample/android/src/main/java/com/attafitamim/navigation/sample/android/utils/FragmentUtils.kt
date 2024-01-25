@@ -1,4 +1,4 @@
-package com.attafitamim.navigation.sample.android.utls
+package com.attafitamim.navigation.sample.android.utils
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

@@ -13,7 +13,7 @@ import com.attafitamim.navigation.sample.android.router.fragments.SimpleFragment
 import com.attafitamim.navigation.sample.android.router.fragments.WithArgumentsFragment
 import com.attafitamim.navigation.sample.android.router.fragments.WithResultFragment
 
-object ScreenAdapter : ScreenAdapter<AndroidScreen> {
+object AndroidScreenAdapter : ScreenAdapter<AndroidScreen> {
 
     override fun createPlatformScreen(screen: Screen): AndroidScreen =
         when(val navigationScreen = screen as NavigationScreen) {

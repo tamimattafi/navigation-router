@@ -32,7 +32,7 @@ android {
     }
 
     kotlin {
-        jvmToolchain(17)
+            jvmToolchain(17)
     }
 
     kotlinOptions {
@@ -48,10 +48,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    implementation(project(":router:platform"))
+    implementation(projects.router.platform)
 
     // Router
 
     // Common
-    implementation(project(":sample:common"))
+    implementation(projects.sample.common)
 }

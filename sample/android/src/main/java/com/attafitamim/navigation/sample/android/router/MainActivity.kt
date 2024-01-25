@@ -3,6 +3,7 @@ package com.attafitamim.navigation.sample.android.router
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
+import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.platform.handlers.ActivityNavigationDelegate
 import com.attafitamim.navigation.router.platform.navigator.ActivityNavigator
@@ -19,7 +20,7 @@ class MainActivity : AppCompatActivity(), ActivityNavigationDelegate {
         ActivityNavigator(
             this,
             R.id.fragmentContainer,
-            ScreenAdapter,
+            AndroidScreenAdapter,
             navigationDelegate = this
         )
     }

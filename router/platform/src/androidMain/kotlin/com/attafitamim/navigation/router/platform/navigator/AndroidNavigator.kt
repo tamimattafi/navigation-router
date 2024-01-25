@@ -13,7 +13,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LifecycleOwner
-import com.attafitamim.navigation.router.platform.handlers.NavigationDelegate
+import com.attafitamim.navigation.router.base.navigator.BaseNavigator
+import com.attafitamim.navigation.router.platform.handlers.AndroidNavigationDelegate
 import com.attafitamim.navigation.router.platform.screens.AndroidScreen
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
@@ -21,18 +22,18 @@ import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
-abstract class BaseNavigator(
+abstract class AndroidNavigator(
     protected val activity: FragmentActivity,
     protected open val containerId: Int,
     protected open val screenAdapter: ScreenAdapter<AndroidScreen>,
     protected open val fragmentManager: FragmentManager,
     protected open val fragmentFactory: FragmentFactory,
     protected open val lifecycleOwner: LifecycleOwner,
-    protected open val navigationDelegate: NavigationDelegate
-) : Navigator {
+    override val navigationDelegate: AndroidNavigationDelegate
+) : BaseNavigator(navigationDelegate), Navigator {
 
-    override val currentVisibleScreen: Screen? get() =
-        screenHistory[currentVisibleFragment?.tag]
+    override val currentVisibleScreenKey: String?
+        get() = currentVisibleFragment?.tag
 
     protected open val currentVisibleFragment: Fragment? get() =
         fragmentManager.fragments.lastOrNull(Fragment::isVisible)
@@ -49,7 +50,6 @@ abstract class BaseNavigator(
     protected open val topFragment: Fragment? get() =
         fragmentManager.fragments.lastOrNull()
 
-    protected open val screenHistory = mutableMapOf<String, Screen>()
     protected open lateinit var backPressCallback: OnBackPressedCallback
 
 
@@ -59,27 +59,15 @@ abstract class BaseNavigator(
 
     override fun applyCommands(commands: Array<out Command>) {
         fragmentManager.executePendingTransactions()
-
-        for (command in commands) {
-            tryApplyCommand(command)
-        }
+        super.applyCommands(commands)
     }
 
-    protected open fun tryApplyCommand(command: Command) {
-        if (navigationDelegate.shouldApplyCommand(command)) {
-            try {
-                applyCommand(command)
-            } catch (e: RuntimeException) {
-                errorOnApplyCommand(command, e)
-            }
-        }
-    }
 
-    protected open fun exitNavigator() {
+    protected override fun exitNavigator() {
         navigationDelegate.performExit(activity)
     }
 
-    protected open fun releaseNavigator() {
+    protected override fun releaseNavigator() {
         backPressCallback.apply {
             isEnabled = false
             remove()
@@ -88,7 +76,7 @@ abstract class BaseNavigator(
         exitNavigator()
     }
 
-    protected open fun setCurrentScreenBackPressHandler(handler: ScreenBackPressHandler) {
+    protected override fun setCurrentScreenBackPressHandler(handler: ScreenBackPressHandler) {
         val backPressCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (!isEnabled) return
@@ -110,23 +98,7 @@ abstract class BaseNavigator(
         )
     }
 
-    /**
-     * Perform transition described by the navigation command
-     *
-     * @param command the navigation command to apply
-     */
-    protected open fun applyCommand(command: Command) {
-        when (command) {
-            is Command.Forward -> forward(command.screen)
-            is Command.Replace -> replace(command.screen)
-            is Command.BackTo -> backTo(command.screen)
-            is Command.Back -> back()
-            is Command.AddBackPressHandler -> setCurrentScreenBackPressHandler(command.handler)
-            is Command.Remove -> remove(command.screen)
-        }
-    }
-
-    protected open fun forward(screen: Screen) {
+    override fun forward(screen: Screen) {
         when (val androidScreen = screenAdapter.createPlatformScreen(screen)) {
             is AndroidScreen.Activity -> forwardActivity(screen, androidScreen)
             is AndroidScreen.Fragment -> forwardFragment(screen, androidScreen)
@@ -174,7 +146,7 @@ abstract class BaseNavigator(
         openNewDialogScreen(screen, androidScreen)
     }
 
-    protected open fun replace(screen: Screen) {
+    override fun replace(screen: Screen) {
         when (val androidScreen = screenAdapter.createPlatformScreen(screen)) {
             is AndroidScreen.Activity -> replaceActivity(screen, androidScreen)
             is AndroidScreen.Fragment -> replaceFragment(screen, androidScreen)
@@ -207,44 +179,16 @@ abstract class BaseNavigator(
         openNewDialogScreen(screen, androidScreen)
     }
 
-    protected open fun performBackPress() {
+    override fun performBackPress() {
         tryApplyCommand(Command.Back)
     }
 
-    protected open fun remove(screen: Screen) {
-        if (!screenHistory.containsValue(screen)) return
-
-        when {
-            screenHistory.size > 1 || navigationDelegate.keepAfterLastScreen(screen) -> {
-                removeScreen(screen)
-            }
-
-            else -> releaseNavigator()
-        }
-    }
-
-    protected open fun back() {
-        val visibleScreen = currentVisibleScreen
-
-        when {
-            visibleScreen == null || screenHistory.isEmpty() -> {
-                releaseNavigator()
-            }
-
-            screenHistory.size > 1 || navigationDelegate.keepAfterLastScreen(visibleScreen) -> {
-                removeScreen(visibleScreen)
-            }
-
-            else -> releaseNavigator()
-        }
-    }
-
-    protected open fun resetScreen(screen: Screen) {
+    override fun resetScreen(screen: Screen) {
         removeScreen(screen)
         screenHistory[screen.key] = screen
     }
 
-    protected open fun removeScreen(screen: Screen) {
+    override fun removeScreen(screen: Screen) {
         val fragment = fragmentManager.findFragmentByTag(screen.key) ?: return
         removeScreen(screen, fragment)
     }
@@ -336,7 +280,7 @@ abstract class BaseNavigator(
     /**
      * Performs [Command.BackTo] command transition
      */
-    protected open fun backTo(screen: Screen?) {
+    override fun backTo(screen: Screen?) {
         if (screen == null) return backToRoot()
 
         if (screenHistory.contains(screen.key)) {
@@ -351,7 +295,7 @@ abstract class BaseNavigator(
         }
     }
 
-    protected open fun backToRoot() {
+    override fun backToRoot() {
         navigationDelegate.onBackingToRoot()
         dismissOpenDialogs()
         screenHistory.clear()
@@ -437,30 +381,6 @@ abstract class BaseNavigator(
         intentSender: IntentSender
     ) {
         // Do nothing by default
-    }
-
-    /**
-     * Called when we tried to fragmentBack to some specific screen (via [Command.BackTo] command),
-     * but didn't found it.
-     *
-     * @param screen screen
-     */
-    protected open fun backToUnexisting(screen: Screen) {
-        backToRoot()
-    }
-
-    /**
-     * Override this method if you want to handle apply command error.
-     *
-     * @param command command
-     * @param error   error
-     */
-
-    protected open fun errorOnApplyCommand(
-        command: Command,
-        error: RuntimeException
-    ) {
-        throw error
     }
 
     private fun setupBackPressListener() {
