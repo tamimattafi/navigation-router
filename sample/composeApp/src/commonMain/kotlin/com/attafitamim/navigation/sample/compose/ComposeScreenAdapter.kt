@@ -1,6 +1,8 @@
 package com.attafitamim.navigation.sample.compose
 
+import ArgumentsScreen
 import MainScreen
+import ResultScreen
 import SimpleScreen
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
@@ -14,24 +16,24 @@ object ComposeScreenAdapter : ScreenAdapter<ComposeScreen> {
                 MainScreen()
             }
 
-            is NavigationScreen.Simple -> ComposeScreen.Full {
+            is NavigationScreen.Simple -> ComposeScreen.Dialog.BottomSheet {
                 SimpleScreen()
             }
 
-            is NavigationScreen.Loading -> ComposeScreen.Alert {
+            is NavigationScreen.Loading -> ComposeScreen.Dialog.Alert {
                 TODO()
             }
 
             is NavigationScreen.WithArguments -> ComposeScreen.Full {
+                ArgumentsScreen(navigationScreen)
+            }
+
+            is NavigationScreen.WithComplexResult -> ComposeScreen.Dialog.Alert {
                 TODO()
             }
 
-            is NavigationScreen.WithComplexResult -> ComposeScreen.Alert {
-                TODO()
-            }
-
-            is NavigationScreen.WithResult -> ComposeScreen.Alert {
-                TODO()
+            is NavigationScreen.WithResult -> ComposeScreen.Dialog.Alert {
+                ResultScreen(navigationScreen)
             }
 
             is NavigationScreen.PlayMarket -> {
