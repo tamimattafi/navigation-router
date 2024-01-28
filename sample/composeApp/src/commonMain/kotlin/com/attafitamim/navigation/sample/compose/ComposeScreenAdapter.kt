@@ -1,13 +1,17 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.attafitamim.navigation.sample.compose
 
 import ArgumentsScreen
 import MainScreen
 import ResultScreen
 import SimpleScreen
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
+
 object ComposeScreenAdapter : ScreenAdapter<ComposeScreen> {
 
     override fun createPlatformScreen(screen: Screen): ComposeScreen =

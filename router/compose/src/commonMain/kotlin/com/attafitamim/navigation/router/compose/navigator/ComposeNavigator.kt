@@ -1,15 +1,12 @@
 package com.attafitamim.navigation.router.compose.navigator
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import com.attafitamim.navigation.router.compose.handlers.ComposeNavigationDelegate
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
+import com.attafitamim.navigation.router.compose.utils.BackHandler
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
 import com.attafitamim.navigation.router.core.navigator.Navigator
@@ -26,6 +23,7 @@ open class ComposeNavigator(
 
     private val screens: MutableMap<String, Screen> = mutableMapOf()
     private val composeScreens: MutableMap<String, ComposeScreen> = mutableMapOf()
+    private val backHandlers: MutableMap<String, ScreenBackPressHandler> = mutableMapOf()
 
     private val fullScreensQueue = mutableStateOf(ArrayDeque<String>())
     private val dialogsQueue = mutableStateOf(ArrayDeque<String>())
@@ -38,7 +36,11 @@ open class ComposeNavigator(
     }
 
     @Composable
-    fun Content() = Box(modifier = Modifier.fillMaxSize()) {
+    fun Content() {
+        BackHandler(isEnabled = true) {
+            back()
+        }
+
         FullScreensLayout()
         DialogsLayout()
     }
@@ -100,7 +102,8 @@ open class ComposeNavigator(
     }
 
     private fun addBackHandler(handler: ScreenBackPressHandler) {
-        // handler.canExitScreen()
+        val screenKey = currentScreenKey ?: return
+        backHandlers[screenKey] = handler
     }
 
     private fun replace(screen: Screen) {
@@ -242,7 +245,13 @@ open class ComposeNavigator(
 
     private fun back() {
         val currentScreen = currentVisibleScreen ?: return
-        remove(currentScreen)
+        val screenKey = currentScreen.key
+        val backHandler = backHandlers[screenKey]
+
+        if (backHandler == null || backHandler.canExitScreen()) {
+            backHandlers.remove(screenKey)
+            remove(currentScreen)
+        }
     }
 
     private fun backToRoot() {

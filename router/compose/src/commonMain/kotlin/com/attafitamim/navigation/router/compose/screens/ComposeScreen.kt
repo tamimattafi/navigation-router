@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.attafitamim.navigation.router.compose.screens
 
 import androidx.compose.foundation.layout.ColumnScope
@@ -8,6 +6,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -48,21 +47,52 @@ sealed interface ComposeScreen : PlatformScreen {
         interface BottomSheet : Dialog {
 
             companion object {
+
+                @OptIn(ExperimentalMaterial3Api::class)
                 operator fun invoke(
-                    modifier: Modifier,
-                    sheetState: SheetState,
-                    shape: Shape,
-                    containerColor: Color,
-                    contentColor: Color,
-                    tonalElevation: Dp,
-                    scrimColor: Color,
-                    dragHandle: @Composable (() -> Unit)?,
-                    windowInsets: WindowInsets,
+                    modifier: Modifier = Modifier,
+                    overrideSheetState: SheetState? = null,
+                    overrideShape: Shape? = null,
+                    overrideContainerColor: Color? = null,
+                    overrideContentColor: Color? = null,
+                    overrideTonalElevation: Dp? = null,
+                    overrideScrimColor: Color? = null,
+                    overrideDragHandle: @Composable (() -> Unit)? = null,
+                    overrideWindowInsets: WindowInsets? = null,
                     content: @Composable ColumnScope.() -> Unit
                 ) = object : BottomSheet {
 
                     @Composable
                     override fun Content(onDismiss: () -> Unit) {
+                        val sheetState = overrideSheetState ?:
+                            rememberModalBottomSheetState(
+                                skipPartiallyExpanded = true,
+                                confirmValueChange = { sheetValue ->
+                                    sheetValue != SheetValue.PartiallyExpanded
+                                }
+                            )
+
+                        val shape = overrideShape ?:
+                            BottomSheetDefaults.ExpandedShape
+
+                        val containerColor = overrideContainerColor
+                            ?: BottomSheetDefaults.ContainerColor
+
+                        val contentColor = overrideContentColor
+                            ?: contentColorFor(containerColor)
+
+                        val tonalElevation = overrideTonalElevation ?:
+                            BottomSheetDefaults.Elevation
+
+                        val scrimColor = overrideScrimColor ?:
+                            BottomSheetDefaults.ScrimColor
+
+                        val dragHandle = overrideDragHandle ?:
+                            { BottomSheetDefaults.DragHandle() }
+
+                        val windowInsets = overrideWindowInsets ?:
+                            BottomSheetDefaults.windowInsets
+
                         ModalBottomSheet(
                             onDismissRequest = onDismiss,
                             modifier = modifier,
@@ -74,41 +104,6 @@ sealed interface ComposeScreen : PlatformScreen {
                             scrimColor = scrimColor,
                             dragHandle = dragHandle,
                             windowInsets = windowInsets,
-                            content = content
-                        )
-                    }
-                }
-
-                operator fun invoke(
-                    modifier: Modifier = Modifier,
-                    overrideContainerColor: Color? = null,
-                    overrideContentColor: Color? = null,
-                    content: @Composable ColumnScope.() -> Unit
-                ) = object : BottomSheet {
-
-                    @Composable
-                    override fun Content(onDismiss: () -> Unit) {
-                        val sheetState = rememberModalBottomSheetState(
-                            skipPartiallyExpanded = true
-                        )
-
-                        val containerColor = overrideContainerColor
-                            ?: BottomSheetDefaults.ContainerColor
-
-                        val contentColor = overrideContentColor
-                            ?: contentColorFor(containerColor)
-
-                        ModalBottomSheet(
-                            onDismissRequest = onDismiss,
-                            modifier = modifier,
-                            sheetState = sheetState,
-                            shape = BottomSheetDefaults.ExpandedShape,
-                            containerColor = containerColor,
-                            contentColor = contentColor,
-                            tonalElevation = BottomSheetDefaults.Elevation,
-                            scrimColor = BottomSheetDefaults.ScrimColor,
-                            dragHandle = null,
-                            windowInsets = BottomSheetDefaults.windowInsets,
                             content = content
                         )
                     }
@@ -146,6 +141,5 @@ sealed interface ComposeScreen : PlatformScreen {
                 }
             }
         }
-
     }
 }

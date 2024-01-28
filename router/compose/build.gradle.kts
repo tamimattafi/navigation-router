@@ -45,7 +45,15 @@ kotlin {
                 // Compose
                 implementation(compose.runtime)
                 implementation(compose.ui)
+                implementation(compose.material)
                 implementation(compose.material3)
+            }
+        }
+
+        val androidMain by getting {
+            dependencies {
+                // Compose
+                implementation(libs.compose.activity)
             }
         }
     }

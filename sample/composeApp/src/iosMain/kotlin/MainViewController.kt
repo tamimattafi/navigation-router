@@ -1,9 +1,14 @@
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.compose.handlers.ComposeNavigationDelegate
+import com.attafitamim.navigation.router.compose.navigator.ComposeNavigationDelegate
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
+import com.attafitamim.navigation.router.compose.utils.ActionsStore
+import com.attafitamim.navigation.router.compose.utils.actionsStore
 import com.attafitamim.navigation.sample.compose.ComposeScreenAdapter
 import platform.UIKit.UIViewController
 
@@ -19,8 +24,14 @@ fun MainViewController(): UIViewController {
     ApplicationRouter.instance.newRootScreen(NavigationScreen.Main)
 
     return ComposeUIViewController {
-        MaterialTheme {
-            navigator.Content()
+        Box(Modifier.safeDrawingPadding()) {
+            MaterialTheme {
+                navigator.Content()
+            }
         }
     }
+}
+
+fun onBackPress() {
+    actionsStore.send(ActionsStore.Action.OnBackPress)
 }

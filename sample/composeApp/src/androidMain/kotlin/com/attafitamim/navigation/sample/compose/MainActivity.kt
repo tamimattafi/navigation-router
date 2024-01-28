@@ -3,10 +3,14 @@ package com.attafitamim.navigation.sample.compose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.MaterialTheme
+import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.compose.handlers.ComposeNavigationDelegate
+import com.attafitamim.navigation.router.compose.navigator.ComposeNavigationDelegate
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
 
 class MainActivity : ComponentActivity(), ComposeNavigationDelegate {
@@ -31,10 +35,13 @@ class MainActivity : ComponentActivity(), ComposeNavigationDelegate {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            MaterialTheme {
-                navigator.Content()
+            Box(Modifier.safeDrawingPadding()) {
+                MaterialTheme {
+                    navigator.Content()
+                }
             }
         }
 

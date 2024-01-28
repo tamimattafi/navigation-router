@@ -6,7 +6,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,6 +84,20 @@ fun SimpleScreen() {
 fun ArgumentsScreen(
     screen: NavigationScreen.WithArguments
 ) {
+    var exitAttempts by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(screen) {
+        ApplicationRouter.instance.setCurrentScreenExitHandler {
+            val canExit = exitAttempts == 2
+
+            if (!canExit) {
+                exitAttempts++
+            }
+
+            canExit
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -101,6 +119,8 @@ fun ArgumentsScreen(
         Button(onClick = ::back) {
             Text("Back")
         }
+
+        Text("Exit attempts: $exitAttempts")
     }
 }
 

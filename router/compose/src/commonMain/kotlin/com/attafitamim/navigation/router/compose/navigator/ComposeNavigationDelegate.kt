@@ -1,4 +1,4 @@
-package com.attafitamim.navigation.router.compose.handlers
+package com.attafitamim.navigation.router.compose.navigator
 
 import com.attafitamim.navigation.router.core.navigator.NavigationDelegate
 
