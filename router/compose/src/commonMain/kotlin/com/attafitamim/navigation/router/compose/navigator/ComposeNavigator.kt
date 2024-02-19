@@ -69,8 +69,7 @@ open class ComposeNavigator(
         when (val composeScreen = composeScreens[screenKey]) {
             is ComposeScreen.Dialog -> composeScreen.Content(onDismiss = {
                 dialogsQueue.update {
-                    screens.remove(screenKey)
-                    composeScreens.remove(screenKey)
+                    clearScreenData(screenKey)
                     remove(screenKey)
                 }
             })
@@ -138,8 +137,7 @@ open class ComposeNavigator(
             removeElement(screenKey)
         }
 
-        screens.remove(screenKey)
-        composeScreens.remove(screenKey)
+        clearScreenData(screenKey)
     }
 
     private fun removeFullScreen(screenKey: String) {
@@ -156,8 +154,7 @@ open class ComposeNavigator(
             removeElement(screenKey)
         }
 
-        screens.remove(screenKey)
-        composeScreens.remove(screenKey)
+        clearScreenData(screenKey)
     }
 
     private fun ArrayDeque<String>.removeElement(element: String) {
@@ -167,9 +164,8 @@ open class ComposeNavigator(
             elementsToKeep.add(removedElement)
         }
 
-        val elementToRemove = removeLast()
-        screens.remove(elementToRemove)
-        composeScreens.remove(elementToRemove)
+        val screenKey = removeLast()
+        clearScreenData(screenKey)
 
         addAll(elementsToKeep)
     }
@@ -204,6 +200,8 @@ open class ComposeNavigator(
     }
 
     private fun forwardFullScreen(screen: Screen, fullScreen: ComposeScreen.Full) {
+        closeAllDialogs()
+
         val screenKey = screen.key
         val fullScreens = fullScreensQueue.value
 
@@ -225,6 +223,19 @@ open class ComposeNavigator(
         }
     }
 
+    private fun closeAllDialogs() {
+        if (dialogsQueue.value.isEmpty()) {
+            return
+        }
+
+        dialogsQueue.update {
+            removeAll { screenKey ->
+                clearScreenData(screenKey)
+                true
+            }
+        }
+    }
+
     private fun backTo(screen: Screen?) {
         val screenKey = screen?.key
         if (screen == null || !screens.contains(screenKey)) {
@@ -237,8 +248,7 @@ open class ComposeNavigator(
         fullScreensQueue.update {
             while (last() != screenKey) {
                 val removedScreen = removeLast()
-                screens.remove(removedScreen)
-                composeScreens.remove(removedScreen)
+                clearScreenData(removedScreen)
             }
         }
     }
@@ -263,14 +273,18 @@ open class ComposeNavigator(
         fullScreensQueue.update {
             val firstScreen = removeFirst()
 
-            forEach { screenKey ->
-                screens.remove(screenKey)
-                composeScreens.remove(screenKey)
+            removeAll { screenKey ->
+                clearScreenData(screenKey)
+                true
             }
 
-            clear()
             addLast(firstScreen)
         }
+    }
+
+    private fun clearScreenData(screenKey: String) {
+        screens.remove(screenKey)
+        composeScreens.remove(screenKey)
     }
 
     private fun releaseNavigator() {

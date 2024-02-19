@@ -73,6 +73,10 @@ fun MainScreen() {
 @Composable
 fun SimpleScreen() {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(onClick = ::toArgumentsScreen) {
+            Text("Arguments Screen")
+        }
+
         Image(painterResource("compose-multiplatform.xml"), null)
         Button(onClick = { ApplicationRouter.instance.exit() }) {
             Text("Back")
