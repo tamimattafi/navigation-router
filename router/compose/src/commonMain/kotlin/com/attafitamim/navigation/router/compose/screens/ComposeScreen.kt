@@ -141,5 +141,20 @@ sealed interface ComposeScreen : PlatformScreen {
                 }
             }
         }
+
+        interface Overlay : Dialog {
+
+            companion object {
+                operator fun invoke(
+                    content: @Composable (onDismiss: () -> Unit) -> Unit
+                ) = object : Dialog {
+
+                    @Composable
+                    override fun Content(onDismiss: () -> Unit) {
+                        content.invoke(onDismiss)
+                    }
+                }
+            }
+        }
     }
 }
