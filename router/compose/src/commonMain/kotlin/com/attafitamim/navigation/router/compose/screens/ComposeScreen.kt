@@ -19,7 +19,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.attafitamim.navigation.router.core.screens.platform.PlatformScreen
 
-sealed interface ComposeScreen : PlatformScreen {
+interface ComposeNavigatorScreen : PlatformScreen
+
+expect interface ComposeNavigatorController : ComposeNavigatorScreen
+
+sealed interface ComposeScreen : ComposeNavigatorScreen {
 
     interface Full : ComposeScreen {
 

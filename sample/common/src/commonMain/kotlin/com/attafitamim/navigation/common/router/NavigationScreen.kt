@@ -24,4 +24,8 @@ sealed interface NavigationScreen : Screen {
     ) : NavigationScreen
 
     data object PlayMarket : NavigationScreen
+
+    data class TextShareDialog(
+        val text: String
+    ) : NavigationScreen
 }

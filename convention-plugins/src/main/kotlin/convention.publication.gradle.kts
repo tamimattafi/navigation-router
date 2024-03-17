@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.attafitamim.navigation"
-version = "3.0.2-alpha02"
+version = "3.0.2-local03"
 
 val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")

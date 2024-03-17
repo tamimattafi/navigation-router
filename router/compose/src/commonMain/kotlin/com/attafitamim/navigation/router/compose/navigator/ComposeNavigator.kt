@@ -5,6 +5,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
+import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
 import com.attafitamim.navigation.router.compose.utils.BackHandler
 import com.attafitamim.navigation.router.core.commands.Command
@@ -14,7 +16,7 @@ import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 open class ComposeNavigator(
-    private val screenAdapter: ScreenAdapter<ComposeScreen>,
+    private val screenAdapter: ScreenAdapter<ComposeNavigatorScreen>,
     private val navigationDelegate: ComposeNavigationDelegate
 ) : Navigator {
 
@@ -48,10 +50,8 @@ open class ComposeNavigator(
     @Composable
     protected open fun FullScreensLayout() {
         val fullScreens by remember { fullScreensQueue }
-        val currentFullScreenKey = fullScreens.lastOrNull()
-
-        if (currentFullScreenKey != null) {
-            ComposeScreenLayout(screenKey = currentFullScreenKey)
+        fullScreens.forEach { screenKey ->
+            ComposeScreenLayout(screenKey = screenKey)
         }
     }
 
@@ -65,7 +65,6 @@ open class ComposeNavigator(
 
     @Composable
     protected open fun ComposeScreenLayout(screenKey: String) {
-
         when (val composeScreen = composeScreens[screenKey]) {
             is ComposeScreen.Dialog -> composeScreen.Content(onDismiss = {
                 dialogsQueue.update {
@@ -105,9 +104,9 @@ open class ComposeNavigator(
         backHandlers[screenKey] = handler
     }
 
-    private fun replace(screen: Screen) {
+    private fun replaceFullScreen(screen: Screen, composeScreen: ComposeScreen.Full) {
         if (fullScreensQueue.value.isEmpty()) {
-            forward(screen)
+            forwardFullScreen(screen, composeScreen)
             return
         }
 
@@ -115,7 +114,21 @@ open class ComposeNavigator(
             removeLast()
         }
 
-        forward(screen)
+        forwardFullScreen(screen, composeScreen)
+        screens.remove(currentScreen)
+    }
+
+    private fun replaceDialog(screen: Screen, composeScreen: ComposeScreen.Dialog) {
+        if (dialogsQueue.value.isEmpty()) {
+            forwardDialog(screen, composeScreen)
+            return
+        }
+
+        val currentScreen = dialogsQueue.update {
+            removeLast()
+        }
+
+        forwardDialog(screen, composeScreen)
         screens.remove(currentScreen)
     }
 
@@ -174,7 +187,21 @@ open class ComposeNavigator(
         when (val platformScreen = screenAdapter.createPlatformScreen(screen)) {
             is ComposeScreen.Dialog -> forwardDialog(screen, platformScreen)
             is ComposeScreen.Full -> forwardFullScreen(screen, platformScreen)
+            is ComposeNavigatorController -> navigationDelegate.forwardController(screen, platformScreen)
         }
+    }
+
+    private fun replace(screen: Screen) {
+        when (val platformScreen = screenAdapter.createPlatformScreen(screen)) {
+            is ComposeScreen.Full -> replaceFullScreen(screen, platformScreen)
+            is ComposeScreen.Dialog -> replaceDialog(screen, platformScreen)
+            is ComposeNavigatorController -> replaceController(screen, platformScreen)
+        }
+    }
+
+    private fun replaceController(screen: Screen, platformScreen: ComposeNavigatorController) {
+        navigationDelegate.forwardController(screen, platformScreen)
+        exitNavigator()
     }
 
     private fun forwardDialog(screen: Screen, dialog: ComposeScreen.Dialog) {

@@ -50,6 +50,11 @@ private fun sendSimpleResult() {
     )
 }
 
+private fun shareText(text: String) {
+    val screen = NavigationScreen.TextShareDialog(text)
+    ApplicationRouter.instance.navigateTo(screen)
+}
+
 @Composable
 fun MainScreen() {
     val greeting = remember { Greeting().greet() }
@@ -118,6 +123,12 @@ fun ArgumentsScreen(
 
         Button(onClick = ::toArgumentsScreen) {
             Text("New Arguments Screen")
+        }
+
+        Button(onClick = {
+            shareText(screen.arg1)
+        }) {
+            Text("Share arg1")
         }
 
         Button(onClick = ::back) {

@@ -27,11 +27,11 @@ class ContainerViewController: UIViewController {
 }
 
 struct SwipeGestureViewController: UIViewControllerRepresentable {
+    let rootViewController: UIViewController
     var onSwipe: () -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = MainViewControllerKt.MainViewController()
-        let containerController = ContainerViewController(child: viewController) {
+        let containerController = ContainerViewController(child: rootViewController) {
             context.coordinator.startPoint = $0
         }
 
@@ -73,11 +73,14 @@ struct SwipeGestureViewController: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
+    let rootViewController: MainViewController
+
     var body: some View {
         VStack {
-            SwipeGestureViewController {
-                MainViewControllerKt.onBackPress()
-            }
-        }.ignoresSafeArea(.all)
+            SwipeGestureViewController(
+                rootViewController: rootViewController.getPlatformController(), onSwipe: {
+                rootViewController.onBackPressed()
+            }).ignoresSafeArea(.all)
+        }
     }
 }

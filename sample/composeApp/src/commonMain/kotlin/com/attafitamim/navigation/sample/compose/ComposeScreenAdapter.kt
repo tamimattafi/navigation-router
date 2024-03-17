@@ -8,13 +8,16 @@ import ResultScreen
 import SimpleScreen
 import androidx.compose.material3.ExperimentalMaterial3Api
 import com.attafitamim.navigation.common.router.NavigationScreen
+import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
-object ComposeScreenAdapter : ScreenAdapter<ComposeScreen> {
+expect fun toPlatformScreen(screen: NavigationScreen.TextShareDialog): ComposeNavigatorScreen
 
-    override fun createPlatformScreen(screen: Screen): ComposeScreen =
+object ComposeScreenAdapter : ScreenAdapter<ComposeNavigatorScreen> {
+
+    override fun createPlatformScreen(screen: Screen): ComposeNavigatorScreen =
         when(val navigationScreen = screen as NavigationScreen) {
             is NavigationScreen.Main -> ComposeScreen.Full {
                 MainScreen()
@@ -43,6 +46,8 @@ object ComposeScreenAdapter : ScreenAdapter<ComposeScreen> {
             is NavigationScreen.PlayMarket -> {
                 TODO()
             }
+
+            is NavigationScreen.TextShareDialog -> toPlatformScreen(navigationScreen)
         }
 }
 
