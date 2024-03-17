@@ -1,10 +1,22 @@
 package com.attafitamim.navigation.router.compose.navigator
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.IntOffset
 import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
 import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
 import com.attafitamim.navigation.router.compose.screens.ComposeScreen
@@ -29,6 +41,7 @@ open class ComposeNavigator(
 
     private val fullScreensQueue = mutableStateOf(ArrayDeque<String>())
     private val dialogsQueue = mutableStateOf(ArrayDeque<String>())
+    private var lastCommand: Command? = null
 
     private val currentScreenKey get() =
         dialogsQueue.value.lastOrNull() ?: fullScreensQueue.value.lastOrNull()
@@ -50,8 +63,34 @@ open class ComposeNavigator(
     @Composable
     protected open fun FullScreensLayout() {
         val fullScreens by remember { fullScreensQueue }
-        fullScreens.forEach { screenKey ->
-            ComposeScreenLayout(screenKey = screenKey)
+
+        if (!fullScreens.isEmpty()) {
+            for (screenPosition in 0 until fullScreens.lastIndex) {
+                ComposeScreenLayout(screenKey = fullScreens[screenPosition])
+            }
+
+            val currentScreen = fullScreens.last()
+            val (initialOffset, targetOffset) = when (lastCommand) {
+                is Command.Back,
+                is Command.BackTo,
+                is Command.Remove -> ({ size: Int -> -size }) to ({ size: Int -> size })
+                else -> ({ size: Int -> size }) to ({ size: Int -> -size })
+            }
+
+            val animationSpec: FiniteAnimationSpec<IntOffset> = spring(
+                stiffness = Spring.StiffnessMediumLow,
+                visibilityThreshold = IntOffset.VisibilityThreshold
+            )
+
+            AnimatedContent(
+                targetState = currentScreen,
+                transitionSpec = {
+                    slideInHorizontally(animationSpec, initialOffset) togetherWith
+                            slideOutHorizontally(animationSpec, targetOffset)
+                }
+            ) {
+                ComposeScreenLayout(screenKey = currentScreen)
+            }
         }
     }
 
@@ -73,7 +112,10 @@ open class ComposeNavigator(
                 }
             })
 
-            is ComposeScreen.Full -> composeScreen.Content()
+            is ComposeScreen.Full -> {
+                composeScreen.Content()
+            }
+
             null -> error("Can't find compose screen for key $screenKey")
         }
     }
@@ -82,6 +124,7 @@ open class ComposeNavigator(
         if (navigationDelegate.shouldApplyCommand(command)) {
             try {
                 applyCommand(command)
+                lastCommand = command
             } catch (e: RuntimeException) {
                 errorOnApplyCommand(command, e)
             }
