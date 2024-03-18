@@ -58,7 +58,10 @@ private fun shareText(text: String) {
 @Composable
 fun MainScreen() {
     val greeting = remember { Greeting().greet() }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        Modifier.fillMaxSize().background(Color(0xFFB0FFD0)),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text("Compose: $greeting")
         Button(onClick = ::toSimpleScreen) {
             Text("Simple Screen")
@@ -77,7 +80,10 @@ fun MainScreen() {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun SimpleScreen() {
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        Modifier.fillMaxWidth().background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Button(onClick = ::toArgumentsScreen) {
             Text("Arguments Screen")
         }
@@ -108,7 +114,7 @@ fun ArgumentsScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFDDD1FF)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Screen: $screen")

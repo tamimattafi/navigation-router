@@ -5,9 +5,6 @@ import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -66,10 +63,14 @@ open class ComposeNavigator(
 
         if (!fullScreens.isEmpty()) {
             for (screenPosition in 0 until fullScreens.lastIndex) {
-                ComposeScreenLayout(screenKey = fullScreens[screenPosition])
+                val screenKey = fullScreens[screenPosition]
+                val composeScreen = composeScreens.getValue(screenKey)
+                ComposeScreenLayout(screenKey, composeScreen)
             }
 
-            val currentScreen = fullScreens.last()
+            val currentScreenKey = fullScreens.last()
+            val currentComposeScreen = composeScreens.getValue(currentScreenKey)
+
             val (initialOffset, targetOffset) = when (lastCommand) {
                 is Command.Back,
                 is Command.BackTo,
@@ -83,13 +84,13 @@ open class ComposeNavigator(
             )
 
             AnimatedContent(
-                targetState = currentScreen,
+                targetState = currentScreenKey to currentComposeScreen,
                 transitionSpec = {
                     slideInHorizontally(animationSpec, initialOffset) togetherWith
                             slideOutHorizontally(animationSpec, targetOffset)
                 }
-            ) {
-                ComposeScreenLayout(screenKey = currentScreen)
+            ) { pair ->
+                ComposeScreenLayout(pair.first, pair.second)
             }
         }
     }
@@ -98,13 +99,14 @@ open class ComposeNavigator(
     protected open fun DialogsLayout() {
         val dialogScreens by remember { dialogsQueue }
         dialogScreens.forEach { screenKey ->
-            ComposeScreenLayout(screenKey = screenKey)
+            val composeScreen = composeScreens.getValue(screenKey)
+            ComposeScreenLayout(screenKey, composeScreen)
         }
     }
 
     @Composable
-    protected open fun ComposeScreenLayout(screenKey: String) {
-        when (val composeScreen = composeScreens[screenKey]) {
+    protected open fun ComposeScreenLayout(screenKey: String, composeScreen: ComposeScreen) {
+        when (composeScreen) {
             is ComposeScreen.Dialog -> composeScreen.Content(onDismiss = {
                 dialogsQueue.update {
                     clearScreenData(screenKey)
@@ -115,8 +117,6 @@ open class ComposeNavigator(
             is ComposeScreen.Full -> {
                 composeScreen.Content()
             }
-
-            null -> error("Can't find compose screen for key $screenKey")
         }
     }
 
