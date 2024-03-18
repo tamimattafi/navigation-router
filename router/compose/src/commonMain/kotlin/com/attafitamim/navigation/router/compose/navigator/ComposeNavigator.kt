@@ -9,10 +9,15 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.SaveableStateHolder
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.IntOffset
 import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
 import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
@@ -40,6 +45,9 @@ open class ComposeNavigator(
     private val dialogsQueue = mutableStateOf(ArrayDeque<String>())
     private var lastCommand: Command? = null
 
+    private val savableStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
+        staticCompositionLocalOf { error("savableStateHolder not initialized") }
+
     private val currentScreenKey get() =
         dialogsQueue.value.lastOrNull() ?: fullScreensQueue.value.lastOrNull()
 
@@ -55,6 +63,13 @@ open class ComposeNavigator(
 
         FullScreensLayout()
         DialogsLayout()
+
+        /* // TODO: use when savableStateHolder is needed for transition animations
+        CompositionLocalProvider(
+            savableStateHolder providesDefault rememberSaveableStateHolder()
+        ) {
+
+        }*/
     }
 
     @Composable
@@ -62,14 +77,18 @@ open class ComposeNavigator(
         val fullScreens by remember { fullScreensQueue }
 
         if (!fullScreens.isEmpty()) {
-            for (screenPosition in 0 until fullScreens.lastIndex) {
+            // TODO: iterate until fullScreens.lastIndex when animation is fixed
+            for (screenPosition in 0 until fullScreens.size) {
                 val screenKey = fullScreens[screenPosition]
                 val composeScreen = composeScreens.getValue(screenKey)
                 ComposeScreenLayout(screenKey, composeScreen)
             }
 
-            val currentScreenKey = fullScreens.last()
-            val currentComposeScreen = composeScreens.getValue(currentScreenKey)
+            /* TODO: fix state loss
+            val animationSpec: FiniteAnimationSpec<IntOffset> = spring(
+                stiffness = Spring.StiffnessMediumLow,
+                visibilityThreshold = IntOffset.VisibilityThreshold
+            )
 
             val (initialOffset, targetOffset) = when (lastCommand) {
                 is Command.Back,
@@ -78,10 +97,8 @@ open class ComposeNavigator(
                 else -> ({ size: Int -> size }) to ({ size: Int -> -size })
             }
 
-            val animationSpec: FiniteAnimationSpec<IntOffset> = spring(
-                stiffness = Spring.StiffnessMediumLow,
-                visibilityThreshold = IntOffset.VisibilityThreshold
-            )
+            val currentScreenKey = fullScreens.last()
+            val currentComposeScreen = composeScreens.getValue(currentScreenKey)
 
             AnimatedContent(
                 targetState = currentScreenKey to currentComposeScreen,
@@ -91,7 +108,7 @@ open class ComposeNavigator(
                 }
             ) { pair ->
                 ComposeScreenLayout(pair.first, pair.second)
-            }
+            }*/
         }
     }
 
