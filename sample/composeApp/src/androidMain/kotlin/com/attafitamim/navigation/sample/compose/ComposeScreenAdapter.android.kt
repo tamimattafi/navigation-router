@@ -1,13 +1,11 @@
 package com.attafitamim.navigation.sample.compose
 
 import android.content.Intent
-import androidx.core.content.ContextCompat.startActivity
 import com.attafitamim.navigation.common.router.NavigationScreen
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
+import com.attafitamim.navigation.router.compose.screens.Destination
 
-actual fun toPlatformScreen(screen: NavigationScreen.TextShareDialog): ComposeNavigatorScreen =
-    ComposeNavigatorController { activity ->
+actual fun toPlatformScreen(screen: NavigationScreen.TextShareDialog): Destination =
+    Destination.External { configuration ->
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, screen.text)
@@ -15,5 +13,5 @@ actual fun toPlatformScreen(screen: NavigationScreen.TextShareDialog): ComposeNa
         }
 
         val shareIntent = Intent.createChooser(sendIntent, null)
-        activity.startActivity(shareIntent)
+        configuration.activity.startActivity(shareIntent)
     }

@@ -1,28 +1,14 @@
 package com.attafitamim.navigation.router.compose.navigator
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.unit.IntOffset
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
-import com.attafitamim.navigation.router.compose.screens.ComposeScreen
-import com.attafitamim.navigation.router.compose.utils.BackHandler
+import com.attafitamim.navigation.router.compose.screens.Destination
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
 import com.attafitamim.navigation.router.core.navigator.Navigator
@@ -30,7 +16,7 @@ import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
 
 open class ComposeNavigator(
-    private val screenAdapter: ScreenAdapter<ComposeNavigatorScreen>,
+    private val screenAdapter: ScreenAdapter<Destination>,
     private val navigationDelegate: ComposeNavigationDelegate
 ) : Navigator {
 
@@ -38,18 +24,19 @@ open class ComposeNavigator(
         get() = currentScreenKey?.let(screens::get)
 
     private val screens: MutableMap<String, Screen> = mutableMapOf()
-    private val composeScreens: MutableMap<String, ComposeScreen> = mutableMapOf()
+    private val composeScreens: MutableMap<String, Destination.ComposeDestination> = mutableMapOf()
     private val backHandlers: MutableMap<String, ScreenBackPressHandler> = mutableMapOf()
 
-    private val fullScreensQueue = mutableStateOf(ArrayDeque<String>())
-    private val dialogsQueue = mutableStateOf(ArrayDeque<String>())
+    private val screensStack = mutableStateOf(ArrayDeque<String>())
+    private val dialogsStack = mutableStateOf(ArrayDeque<String>())
+    private val popupsStack = mutableStateOf(ArrayDeque<String>())
     private var lastCommand: Command? = null
 
     private val savableStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
         staticCompositionLocalOf { error("savableStateHolder not initialized") }
 
     private val currentScreenKey get() =
-        dialogsQueue.value.lastOrNull() ?: fullScreensQueue.value.lastOrNull()
+        dialogsStack.value.lastOrNull() ?: screensStack.value.lastOrNull()
 
     override fun applyCommands(commands: Array<out Command>) {
         commands.forEach(::tryApplyCommand)
@@ -57,12 +44,9 @@ open class ComposeNavigator(
 
     @Composable
     fun Content() {
-        BackHandler(isEnabled = true) {
-            back()
-        }
-
         FullScreensLayout()
         DialogsLayout()
+        PopupsLayout()
 
         /* // TODO: use when savableStateHolder is needed for transition animations
         CompositionLocalProvider(
@@ -74,7 +58,7 @@ open class ComposeNavigator(
 
     @Composable
     protected open fun FullScreensLayout() {
-        val fullScreens by remember { fullScreensQueue }
+        val fullScreens by remember { screensStack }
 
         if (!fullScreens.isEmpty()) {
             // TODO: iterate until fullScreens.lastIndex when animation is fixed
@@ -114,25 +98,38 @@ open class ComposeNavigator(
 
     @Composable
     protected open fun DialogsLayout() {
-        val dialogScreens by remember { dialogsQueue }
-        dialogScreens.forEach { screenKey ->
+        val dialogs by remember { dialogsStack }
+        dialogs.forEach { screenKey ->
             val composeScreen = composeScreens.getValue(screenKey)
             ComposeScreenLayout(screenKey, composeScreen)
         }
     }
 
     @Composable
-    protected open fun ComposeScreenLayout(screenKey: String, composeScreen: ComposeScreen) {
-        when (composeScreen) {
-            is ComposeScreen.Dialog -> composeScreen.Content(onDismiss = {
-                dialogsQueue.update {
-                    clearScreenData(screenKey)
-                    remove(screenKey)
-                }
+    protected open fun PopupsLayout() {
+        val popups by remember { popupsStack }
+        popups.forEach { screenKey ->
+            val composeScreen = composeScreens.getValue(screenKey)
+            ComposeScreenLayout(screenKey, composeScreen)
+        }
+    }
+
+    @Composable
+    protected open fun ComposeScreenLayout(
+        screenKey: String,
+        destination: Destination.ComposeDestination
+    ) {
+        when (destination) {
+            is Destination.ComposeDestination.Dialog -> destination.Content(onDismiss = {
+                removeDialog(screenKey)
             })
 
-            is ComposeScreen.Full -> {
-                composeScreen.Content()
+            is Destination.ComposeDestination.Popup -> destination.Content(onDismiss = {
+                removePopup(screenKey)
+            })
+
+            is Destination.ComposeDestination.Screen -> {
+                destination.Content()
             }
         }
     }
@@ -164,33 +161,48 @@ open class ComposeNavigator(
         backHandlers[screenKey] = handler
     }
 
-    private fun replaceFullScreen(screen: Screen, composeScreen: ComposeScreen.Full) {
-        if (fullScreensQueue.value.isEmpty()) {
-            forwardFullScreen(screen, composeScreen)
+    private fun replaceFullScreen(screen: Screen, destination: Destination.ComposeDestination.Screen) {
+        if (screensStack.value.isEmpty()) {
+            forwardFullScreen(screen, destination)
             return
         }
 
-        val currentScreen = fullScreensQueue.update {
+        val currentScreen = screensStack.update {
             removeLast()
         }
 
-        forwardFullScreen(screen, composeScreen)
+        forwardFullScreen(screen, destination)
         screens.remove(currentScreen)
     }
 
-    private fun replaceDialog(screen: Screen, composeScreen: ComposeScreen.Dialog) {
-        if (dialogsQueue.value.isEmpty()) {
-            forwardDialog(screen, composeScreen)
+    private fun replaceDialog(screen: Screen, destination: Destination.ComposeDestination.Dialog) {
+        if (dialogsStack.value.isEmpty()) {
+            forwardDialog(screen, destination)
             return
         }
 
-        val currentScreen = dialogsQueue.update {
+        val currentScreen = dialogsStack.update {
             removeLast()
         }
 
-        forwardDialog(screen, composeScreen)
+        forwardDialog(screen, destination)
         screens.remove(currentScreen)
     }
+
+    private fun replacePopup(screen: Screen, popup: Destination.ComposeDestination.Popup) {
+        if (popupsStack.value.isEmpty()) {
+            forwardPopup(screen, popup)
+            return
+        }
+
+        val currentScreen = popupsStack.update {
+            removeLast()
+        }
+
+        forwardPopup(screen, popup)
+        screens.remove(currentScreen)
+    }
+
 
     private fun remove(screen: Screen) {
         val screenKey = screen.key
@@ -199,14 +211,24 @@ open class ComposeNavigator(
         }
 
         when (composeScreens.getValue(screenKey)) {
-            is ComposeScreen.Dialog -> removeDialog(screenKey)
-            is ComposeScreen.Full -> removeFullScreen(screenKey)
+            is Destination.ComposeDestination.Dialog -> removeDialog(screenKey)
+            is Destination.ComposeDestination.Screen -> removeFullScreen(screenKey)
+            is Destination.ComposeDestination.Popup -> removePopup(screenKey)
         }
     }
 
+    private fun removePopup(screenKey: String) {
+        val popups = popupsStack.value
+        if (popups.contains(screenKey)) popupsStack.update {
+            removeElement(screenKey)
+        }
+
+        clearScreenData(screenKey)
+    }
+
     private fun removeDialog(screenKey: String) {
-        val dialogs = dialogsQueue.value
-        if (dialogs.contains(screenKey)) dialogsQueue.update {
+        val dialogs = dialogsStack.value
+        if (dialogs.contains(screenKey)) dialogsStack.update {
             removeElement(screenKey)
         }
 
@@ -214,7 +236,7 @@ open class ComposeNavigator(
     }
 
     private fun removeFullScreen(screenKey: String) {
-        val screens = fullScreensQueue.value
+        val screens = screensStack.value
         val shouldExit = screens.isEmpty() ||
                 screens.last() == screenKey && screens.size == 1
 
@@ -223,7 +245,7 @@ open class ComposeNavigator(
             return
         }
 
-        if (screens.contains(screenKey)) fullScreensQueue.update {
+        if (screens.contains(screenKey)) screensStack.update {
             removeElement(screenKey)
         }
 
@@ -245,28 +267,30 @@ open class ComposeNavigator(
 
     private fun forward(screen: Screen) {
         when (val platformScreen = screenAdapter.createPlatformScreen(screen)) {
-            is ComposeScreen.Dialog -> forwardDialog(screen, platformScreen)
-            is ComposeScreen.Full -> forwardFullScreen(screen, platformScreen)
-            is ComposeNavigatorController -> navigationDelegate.forwardController(screen, platformScreen)
+            is Destination.ComposeDestination.Dialog -> forwardDialog(screen, platformScreen)
+            is Destination.ComposeDestination.Screen -> forwardFullScreen(screen, platformScreen)
+            is Destination.ComposeDestination.Popup -> forwardPopup(screen, platformScreen)
+            is Destination.External -> navigationDelegate.handleExternal(screen, platformScreen)
         }
     }
 
     private fun replace(screen: Screen) {
         when (val platformScreen = screenAdapter.createPlatformScreen(screen)) {
-            is ComposeScreen.Full -> replaceFullScreen(screen, platformScreen)
-            is ComposeScreen.Dialog -> replaceDialog(screen, platformScreen)
-            is ComposeNavigatorController -> replaceController(screen, platformScreen)
+            is Destination.ComposeDestination.Screen -> replaceFullScreen(screen, platformScreen)
+            is Destination.ComposeDestination.Dialog -> replaceDialog(screen, platformScreen)
+            is Destination.ComposeDestination.Popup -> replacePopup(screen, platformScreen)
+            is Destination.External -> replaceController(screen, platformScreen)
         }
     }
 
-    private fun replaceController(screen: Screen, platformScreen: ComposeNavigatorController) {
-        navigationDelegate.forwardController(screen, platformScreen)
+    private fun replaceController(screen: Screen, platformScreen: Destination.External) {
+        navigationDelegate.handleExternal(screen, platformScreen)
         exitNavigator()
     }
 
-    private fun forwardDialog(screen: Screen, dialog: ComposeScreen.Dialog) {
+    private fun forwardDialog(screen: Screen, dialog: Destination.ComposeDestination.Dialog) {
         val screenKey = screen.key
-        val dialogs = dialogsQueue.value
+        val dialogs = dialogsStack.value
 
         if (!screens.containsKey(screenKey)) {
             screens[screenKey] = screen
@@ -275,47 +299,69 @@ open class ComposeNavigator(
 
         when {
             dialogs.lastOrNull() == screenKey -> return
-            dialogs.contains(screenKey) -> dialogsQueue.update {
+            dialogs.contains(screenKey) -> dialogsStack.update {
                 remove(screenKey)
                 addLast(screenKey)
             }
 
-            else -> dialogsQueue.update {
+            else -> dialogsStack.update {
                 addLast(screenKey)
             }
         }
     }
 
-    private fun forwardFullScreen(screen: Screen, fullScreen: ComposeScreen.Full) {
-        closeAllDialogs()
-
+    private fun forwardPopup(screen: Screen, popup: Destination.ComposeDestination.Popup) {
         val screenKey = screen.key
-        val fullScreens = fullScreensQueue.value
+        val popups = popupsStack.value
 
         if (!screens.containsKey(screenKey)) {
             screens[screenKey] = screen
-            composeScreens[screenKey] = fullScreen
+            composeScreens[screenKey] = popup
         }
 
         when {
-            fullScreens.lastOrNull() == screenKey -> return
-            fullScreens.contains(screenKey) -> fullScreensQueue.update {
+            popups.lastOrNull() == screenKey -> return
+            popups.contains(screenKey) -> popupsStack.update {
                 remove(screenKey)
                 addLast(screenKey)
             }
 
-            else -> fullScreensQueue.update {
+            else -> popupsStack.update {
+                addLast(screenKey)
+            }
+        }
+    }
+
+    private fun forwardFullScreen(screen: Screen, screenScreen: Destination.ComposeDestination.Screen) {
+        closeAllDialogs()
+
+        val screenKey = screen.key
+        val fullScreens = screensStack.value
+
+        if (!screens.containsKey(screenKey)) {
+            screens[screenKey] = screen
+            composeScreens[screenKey] = screenScreen
+        }
+
+        when {
+            fullScreens.lastOrNull() == screenKey -> return
+            fullScreens.contains(screenKey) -> screensStack.update {
+                remove(screenKey)
+                addLast(screenKey)
+            }
+
+            else -> screensStack.update {
                 addLast(screenKey)
             }
         }
     }
 
     private fun closeAllDialogs() {
-        if (dialogsQueue.value.isEmpty()) {
+        if (dialogsStack.value.isEmpty()) {
             return
         }
 
-        dialogsQueue.update {
+        dialogsStack.update {
             removeAll { screenKey ->
                 clearScreenData(screenKey)
                 true
@@ -332,7 +378,7 @@ open class ComposeNavigator(
 
         notifyBackingToScreen(screen)
 
-        fullScreensQueue.update {
+        screensStack.update {
             while (last() != screenKey) {
                 val removedScreen = removeLast()
                 clearScreenData(removedScreen)
@@ -347,17 +393,26 @@ open class ComposeNavigator(
 
         if (backHandler == null || backHandler.canExitScreen()) {
             backHandlers.remove(screenKey)
-            remove(currentScreen)
+
+            if (!screens.contains(screenKey)) {
+                return
+            }
+
+            when (composeScreens.getValue(screenKey)) {
+                is Destination.ComposeDestination.Dialog -> removeDialog(screenKey)
+                is Destination.ComposeDestination.Screen -> removeFullScreen(screenKey)
+                is Destination.ComposeDestination.Popup -> return
+            }
         }
     }
 
     private fun backToRoot() {
-        if (fullScreensQueue.value.isEmpty() || fullScreensQueue.value.size == 1) {
+        if (screensStack.value.isEmpty() || screensStack.value.size == 1) {
             return
         }
 
         navigationDelegate.onBackingToRoot()
-        fullScreensQueue.update {
+        screensStack.update {
             val firstScreen = removeFirst()
 
             removeAll { screenKey ->
@@ -374,14 +429,7 @@ open class ComposeNavigator(
         composeScreens.remove(screenKey)
     }
 
-    private fun releaseNavigator() {
-        dialogsQueue.update(ArrayDeque<*>::clear)
-        fullScreensQueue.update(ArrayDeque<*>::clear)
-        screens.clear()
-    }
-
     private fun exitNavigator() {
-        releaseNavigator()
         navigationDelegate.preformExit()
     }
 
@@ -399,12 +447,12 @@ open class ComposeNavigator(
     }
 
     protected open fun notifyRemovingScreen(screen: Screen) {
-        val isInitial = screen.key == fullScreensQueue.value.firstOrNull()
+        val isInitial = screen.key == screensStack.value.firstOrNull()
         navigationDelegate.onRemovingScreen(screen, isInitial)
     }
 
     protected open fun notifyBackingToScreen(screen: Screen) {
-        val isInitial = screen.key == fullScreensQueue.value.firstOrNull()
+        val isInitial = screen.key == screensStack.value.firstOrNull()
         navigationDelegate.onBackingToScreen(screen, isInitial)
     }
 

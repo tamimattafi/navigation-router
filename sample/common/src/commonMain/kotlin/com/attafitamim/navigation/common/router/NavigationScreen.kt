@@ -28,4 +28,8 @@ sealed interface NavigationScreen : Screen {
     data class TextShareDialog(
         val text: String
     ) : NavigationScreen
+
+    data class SnackBar(
+        val text: String
+    ) : NavigationScreen
 }

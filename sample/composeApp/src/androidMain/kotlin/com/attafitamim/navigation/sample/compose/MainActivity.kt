@@ -7,7 +7,8 @@ import androidx.core.view.WindowCompat
 import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigationDelegate
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
+import com.attafitamim.navigation.router.compose.navigator.PlatformNavigatorConfiguration
+import com.attafitamim.navigation.router.compose.screens.Destination
 import com.attafitamim.navigation.router.core.screens.Screen
 
 class MainActivity : ComponentActivity(), ComposeNavigationDelegate {
@@ -43,7 +44,11 @@ class MainActivity : ComponentActivity(), ComposeNavigationDelegate {
         finish()
     }
 
-    override fun forwardController(screen: Screen, controllerScreen: ComposeNavigatorController) {
-        controllerScreen.startController(this)
+    override fun handleExternal(screen: Screen, external: Destination.External) {
+        external.forward(PlatformNavigatorConfiguration(this))
+    }
+
+    override fun onBackPressed() {
+        ApplicationRouter.instance.exit()
     }
 }

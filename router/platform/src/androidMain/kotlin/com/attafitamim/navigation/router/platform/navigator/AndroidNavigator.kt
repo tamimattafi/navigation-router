@@ -77,7 +77,7 @@ abstract class AndroidNavigator(
     }
 
     protected override fun setCurrentScreenBackPressHandler(handler: ScreenBackPressHandler) {
-        val backPressCallback = object : OnBackPressedCallback(true) {
+        val backPresxsCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (!isEnabled) return
 

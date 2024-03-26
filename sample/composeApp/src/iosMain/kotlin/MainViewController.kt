@@ -4,8 +4,8 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigationDelegate
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorController
-import com.attafitamim.navigation.router.compose.screens.ComposeNavigatorScreen
+import com.attafitamim.navigation.router.compose.navigator.PlatformNavigatorConfiguration
+import com.attafitamim.navigation.router.compose.screens.Destination
 import com.attafitamim.navigation.router.compose.utils.ActionsStore
 import com.attafitamim.navigation.router.compose.utils.actionsStore
 import com.attafitamim.navigation.router.core.navigator.NavigatorHolder
@@ -19,7 +19,7 @@ import platform.UIKit.UIViewController
 class MainViewController : ComposeNavigationDelegate,
     ComposeUIViewControllerDelegate {
 
-    private val adapter: ScreenAdapter<ComposeNavigatorScreen> get() = ComposeScreenAdapter
+    private val adapter: ScreenAdapter<Destination> get() = ComposeScreenAdapter
     private val navigatorHolder: NavigatorHolder get() = ApplicationRouter.navigatorHolder
 
     private val navigator by lazy {
@@ -39,6 +39,7 @@ class MainViewController : ComposeNavigationDelegate,
 
     fun onBackPressed() {
         actionsStore.send(ActionsStore.Action.OnBackPress)
+        ApplicationRouter.instance.exit()
     }
 
     override fun viewWillAppear(animated: Boolean) {
@@ -60,7 +61,7 @@ class MainViewController : ComposeNavigationDelegate,
         )
     }
 
-    override fun forwardController(screen: Screen, controllerScreen: ComposeNavigatorController) {
-        controllerScreen.startController(platformController)
+    override fun handleExternal(screen: Screen, external: Destination.External) {
+        external.forward(PlatformNavigatorConfiguration(platformController))
     }
 }

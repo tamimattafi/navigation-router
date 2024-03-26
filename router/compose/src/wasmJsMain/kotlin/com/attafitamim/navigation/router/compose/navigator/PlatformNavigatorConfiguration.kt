@@ -1,0 +1,3 @@
+package com.attafitamim.navigation.router.compose.navigator
+
+actual class PlatformNavigatorConfiguration
