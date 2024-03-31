@@ -62,7 +62,7 @@ sealed interface Destination : PlatformScreen {
                         overrideScrimColor: Color? = null,
                         overrideDragHandle: @Composable (() -> Unit)? = null,
                         overrideWindowInsets: WindowInsets? = null,
-                        content: @Composable ColumnScope.() -> Unit
+                        content: @Composable ColumnScope.(SheetState) -> Unit
                     ) = object : BottomSheet {
 
                         @Composable
@@ -107,8 +107,9 @@ sealed interface Destination : PlatformScreen {
                                 scrimColor = scrimColor,
                                 dragHandle = dragHandle,
                                 windowInsets = windowInsets,
-                                content = content
-                            )
+                            ) {
+                                content(sheetState)
+                            }
                         }
                     }
                 }
