@@ -1,10 +1,10 @@
 [versions]
 # App
-android-compileSdk = "34"
-android-minSdk = "24"
-android-targetSdk = "34"
+android_compileSdk = "34"
+android_minSdk = "24"
+android_targetSdk = "34"
 
-android-gradle-plugin = "8.3.1"
+android_gradle_plugin = "8.3.1"
 dokka = "1.9.10"
 nexus = "1.1.0"
 
@@ -18,7 +18,7 @@ kotlin = "1.9.23"
 kotlin_coroutines = "1.8.0"
 
 # Androidx
-androidx-material = "1.10.0"
+androidx-material = "1.11.0"
 androidx-core-ktx = "1.12.0"
 androidx-appcompat = "1.6.1"
 androidx-activityCompose = "1.8.2"
@@ -64,4 +64,4 @@ publish-root = { id = "publish.root" }
 nexus = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
 
 # Compose
-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose_plugin" }

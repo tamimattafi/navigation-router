@@ -1,13 +1,25 @@
 package com.attafitamim.navigation.router.compose.navigator
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.IntOffset
 import com.attafitamim.navigation.router.compose.screens.Destination
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
@@ -27,13 +39,11 @@ open class ComposeNavigator(
     private val composeScreens: MutableMap<String, Destination.ComposeDestination> = mutableMapOf()
     private val backHandlers: MutableMap<String, ScreenBackPressHandler> = mutableMapOf()
 
-    private val screensStack = mutableStateOf(ArrayDeque<String>())
-    private val dialogsStack = mutableStateOf(ArrayDeque<String>())
-    private val popupsStack = mutableStateOf(ArrayDeque<String>())
+    private val screensStack = mutableStateOf(LinkedHashSet<String>())
+    private val dialogsStack = mutableStateOf(LinkedHashSet<String>())
+    private val popupsStack = mutableStateOf(LinkedHashSet<String>())
     private var lastCommand: Command? = null
 
-    private val savableStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
-        staticCompositionLocalOf { error("savableStateHolder not initialized") }
 
     private val currentScreenKey get() =
         dialogsStack.value.lastOrNull() ?: screensStack.value.lastOrNull()
@@ -47,28 +57,31 @@ open class ComposeNavigator(
         FullScreensLayout()
         DialogsLayout()
         PopupsLayout()
+    }
 
-        /* // TODO: use when savableStateHolder is needed for transition animations
-        CompositionLocalProvider(
-            savableStateHolder providesDefault rememberSaveableStateHolder()
-        ) {
+    @Composable
+    private fun QueueChangeHandler(currentQueue: LinkedHashSet<String>) {
+        var previousQueue: LinkedHashSet<String> by remember {
+            mutableStateOf(LinkedHashSet())
+        }
 
-        }*/
+        if (previousQueue != currentQueue) {
+            previousQueue.forEach { key ->
+                if (!currentQueue.contains(key)) {
+                    savableStateHolder.current.removeState(key)
+                }
+            }
+        }
+
+        previousQueue = currentQueue
     }
 
     @Composable
     protected open fun FullScreensLayout() {
         val fullScreens by remember { screensStack }
+        QueueChangeHandler(fullScreens)
 
         if (!fullScreens.isEmpty()) {
-            // TODO: iterate until fullScreens.lastIndex when animation is fixed
-            for (screenPosition in 0 until fullScreens.size) {
-                val screenKey = fullScreens[screenPosition]
-                val composeScreen = composeScreens.getValue(screenKey)
-                ComposeScreenLayout(screenKey, composeScreen)
-            }
-
-            /* TODO: fix state loss
             val animationSpec: FiniteAnimationSpec<IntOffset> = spring(
                 stiffness = Spring.StiffnessMediumLow,
                 visibilityThreshold = IntOffset.VisibilityThreshold
@@ -92,13 +105,15 @@ open class ComposeNavigator(
                 }
             ) { pair ->
                 ComposeScreenLayout(pair.first, pair.second)
-            }*/
+            }
         }
     }
 
     @Composable
     protected open fun DialogsLayout() {
         val dialogs by remember { dialogsStack }
+        QueueChangeHandler(dialogs)
+
         dialogs.forEach { screenKey ->
             val composeScreen = composeScreens.getValue(screenKey)
             ComposeScreenLayout(screenKey, composeScreen)
@@ -108,6 +123,8 @@ open class ComposeNavigator(
     @Composable
     protected open fun PopupsLayout() {
         val popups by remember { popupsStack }
+        QueueChangeHandler(popups)
+
         popups.forEach { screenKey ->
             val composeScreen = composeScreens.getValue(screenKey)
             ComposeScreenLayout(screenKey, composeScreen)
@@ -119,17 +136,19 @@ open class ComposeNavigator(
         screenKey: String,
         destination: Destination.ComposeDestination
     ) {
-        when (destination) {
-            is Destination.ComposeDestination.Dialog -> destination.Content(onDismiss = {
-                removeDialog(screenKey)
-            })
+        savableStateHolder.current.SaveableStateProvider(screenKey) {
+            when (destination) {
+                is Destination.ComposeDestination.Dialog -> destination.Content(onDismiss = {
+                    removeDialog(screenKey)
+                })
 
-            is Destination.ComposeDestination.Popup -> destination.Content(onDismiss = {
-                removePopup(screenKey)
-            })
+                is Destination.ComposeDestination.Popup -> destination.Content(onDismiss = {
+                    removePopup(screenKey)
+                })
 
-            is Destination.ComposeDestination.Screen -> {
-                destination.Content()
+                is Destination.ComposeDestination.Screen -> {
+                    destination.Content()
+                }
             }
         }
     }
@@ -252,17 +271,9 @@ open class ComposeNavigator(
         clearScreenData(screenKey)
     }
 
-    private fun ArrayDeque<String>.removeElement(element: String) {
-        val elementsToKeep = ArrayList<String>(size)
-        while (last() != element) {
-            val removedElement = removeLast()
-            elementsToKeep.add(removedElement)
-        }
-
-        val screenKey = removeLast()
-        clearScreenData(screenKey)
-
-        addAll(elementsToKeep)
+    private fun LinkedHashSet<String>.removeElement(element: String) {
+        remove(element)
+        clearScreenData(element)
     }
 
     private fun forward(screen: Screen) {
@@ -301,11 +312,11 @@ open class ComposeNavigator(
             dialogs.lastOrNull() == screenKey -> return
             dialogs.contains(screenKey) -> dialogsStack.update {
                 remove(screenKey)
-                addLast(screenKey)
+                add(screenKey)
             }
 
             else -> dialogsStack.update {
-                addLast(screenKey)
+                add(screenKey)
             }
         }
     }
@@ -323,11 +334,11 @@ open class ComposeNavigator(
             popups.lastOrNull() == screenKey -> return
             popups.contains(screenKey) -> popupsStack.update {
                 remove(screenKey)
-                addLast(screenKey)
+                add(screenKey)
             }
 
             else -> popupsStack.update {
-                addLast(screenKey)
+                add(screenKey)
             }
         }
     }
@@ -347,11 +358,11 @@ open class ComposeNavigator(
             fullScreens.lastOrNull() == screenKey -> return
             fullScreens.contains(screenKey) -> screensStack.update {
                 remove(screenKey)
-                addLast(screenKey)
+                add(screenKey)
             }
 
             else -> screensStack.update {
-                addLast(screenKey)
+                add(screenKey)
             }
         }
     }
@@ -377,7 +388,6 @@ open class ComposeNavigator(
         }
 
         notifyBackingToScreen(screen)
-
         screensStack.update {
             while (last() != screenKey) {
                 val removedScreen = removeLast()
@@ -387,7 +397,7 @@ open class ComposeNavigator(
     }
 
     private fun back() {
-        val currentScreen = currentVisibleScreen ?: return
+        val currentScreen = currentVisibleScreen ?: return exitNavigator()
         val screenKey = currentScreen.key
         val backHandler = backHandlers[screenKey]
 
@@ -413,6 +423,7 @@ open class ComposeNavigator(
 
         navigationDelegate.onBackingToRoot()
         screensStack.update {
+            remove(first())
             val firstScreen = removeFirst()
 
             removeAll { screenKey ->
@@ -420,7 +431,7 @@ open class ComposeNavigator(
                 true
             }
 
-            addLast(firstScreen)
+            add(firstScreen)
         }
     }
 
@@ -456,13 +467,45 @@ open class ComposeNavigator(
         navigationDelegate.onBackingToScreen(screen, isInitial)
     }
 
-    private fun <R : Any> MutableState<ArrayDeque<String>>.update(
-        onUpdate: ArrayDeque<String>.() -> R?
+    private fun <R : Any> MutableState<LinkedHashSet<String>>.update(
+        onUpdate: LinkedHashSet<String>.() -> R?
     ): R? {
-        val newState = ArrayDeque(value)
+        val newState = LinkedHashSet(value)
         val returnType = onUpdate.invoke(newState)
         value = newState
 
         return returnType
+    }
+
+    private fun <T : Any> LinkedHashSet<T>.removeFirst(): T {
+        val first = first()
+        remove(first)
+        return first
+    }
+
+    private fun <T : Any> LinkedHashSet<T>.removeLast(): T {
+        val last = last()
+        remove(last)
+        return last
+    }
+
+    companion object {
+
+        val savableStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
+            staticCompositionLocalOf { error("savableStateHolder not initialized") }
+
+        @Composable
+        fun Root(content: @Composable () -> Unit) {
+            CompositionLocalProvider(
+                savableStateHolder providesDefault rememberSaveableStateHolder(),
+            ) {
+                content()
+            }
+        }
+
+        @Composable
+        fun Root(navigator: ComposeNavigator) = Root {
+            navigator.Content()
+        }
     }
 }

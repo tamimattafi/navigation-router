@@ -11,7 +11,7 @@ import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
 
 @Composable
-fun ComposeApp(navigator: ComposeNavigator) {
+fun ComposeApp(navigator: ComposeNavigator) = ComposeNavigator.Root {
     LaunchedEffect(navigator) {
         ApplicationRouter.instance.newRootScreen(NavigationScreen.Main)
     }

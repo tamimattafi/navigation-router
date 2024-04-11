@@ -3,6 +3,7 @@ import androidx.compose.ui.window.application
 import com.attafitamim.navigation.common.router.ApplicationRouter
 import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.router.compose.navigator.ComposeNavigator
+import com.attafitamim.navigation.sample.compose.ComposeApp
 import com.attafitamim.navigation.sample.compose.ComposeScreenAdapter
 
 fun main() {
@@ -12,7 +13,7 @@ fun main() {
 
     application {
         Window(onCloseRequest = ::exitApplication, title = "Router Sample") {
-            navigator.Content()
+            ComposeApp(navigator)
         }
     }
 }

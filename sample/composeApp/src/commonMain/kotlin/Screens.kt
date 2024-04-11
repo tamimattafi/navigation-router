@@ -31,6 +31,7 @@ import com.attafitamim.navigation.common.router.NavigationScreen
 import com.attafitamim.navigation.common.router.Results
 import kotlin.random.Random
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -108,7 +109,7 @@ fun SimpleScreen() {
             Text("Arguments Screen")
         }
 
-        Image(painterResource("compose-multiplatform.xml"), null)
+        Image(painterResource(DrawableResource("compose-multiplatform.xml")), null)
         Button(onClick = { ApplicationRouter.instance.exit() }) {
             Text("Back")
         }
@@ -246,7 +247,7 @@ private fun SimpleToast(
             if (!icon.isNullOrBlank()) {
                 Image(
                     modifier = Modifier.size(24.dp).align(Alignment.CenterVertically),
-                    painter = painterResource(icon),
+                    painter = painterResource(DrawableResource(icon)),
                     contentDescription = null,
                 )
             }
