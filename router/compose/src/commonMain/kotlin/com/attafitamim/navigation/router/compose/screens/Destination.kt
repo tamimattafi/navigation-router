@@ -2,6 +2,7 @@ package com.attafitamim.navigation.router.compose.screens
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -61,7 +62,6 @@ sealed interface Destination : PlatformScreen {
                         overrideTonalElevation: Dp? = null,
                         overrideScrimColor: Color? = null,
                         overrideDragHandle: @Composable (() -> Unit)? = null,
-                        overrideWindowInsets: WindowInsets? = null,
                         content: @Composable ColumnScope.(SheetState) -> Unit
                     ) = object : BottomSheet {
 
@@ -93,9 +93,6 @@ sealed interface Destination : PlatformScreen {
                             val dragHandle = overrideDragHandle ?:
                             { BottomSheetDefaults.DragHandle() }
 
-                            val windowInsets = overrideWindowInsets ?:
-                            BottomSheetDefaults.windowInsets
-
                             ModalBottomSheet(
                                 onDismissRequest = onDismiss,
                                 modifier = modifier,
@@ -106,7 +103,7 @@ sealed interface Destination : PlatformScreen {
                                 tonalElevation = tonalElevation,
                                 scrimColor = scrimColor,
                                 dragHandle = dragHandle,
-                                windowInsets = windowInsets,
+                                windowInsets = WindowInsets.ime,
                             ) {
                                 content(sheetState)
                             }
