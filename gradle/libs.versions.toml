@@ -15,32 +15,17 @@ compose_activity = "1.8.2"
 
 # Kotlin
 kotlin = "1.9.23"
-kotlin_coroutines = "1.8.0"
 
 # Androidx
-androidx-material = "1.11.0"
-androidx-core-ktx = "1.12.0"
-androidx-appcompat = "1.6.1"
 androidx-activityCompose = "1.8.2"
-androidx-constraintlayout = "2.1.4"
 
 [libraries]
-# Kotlin
-kotlin_coroutines_core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin_coroutines" }
-
 # Androidx
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
-androidx-material = { group = "com.google.android.material", name = "material", version.ref = "androidx-material" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 
 # Compose
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
 compose_activity = { module = "androidx.activity:activity-compose", version.ref = "compose_activity" }
 
 [plugins]
