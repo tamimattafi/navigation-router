@@ -62,6 +62,7 @@ sealed interface Destination : PlatformScreen {
                         overrideTonalElevation: Dp? = null,
                         overrideScrimColor: Color? = null,
                         overrideDragHandle: @Composable (() -> Unit)? = null,
+                        overrideWindowInsets: WindowInsets? = null,
                         content: @Composable ColumnScope.(SheetState) -> Unit
                     ) = object : BottomSheet {
 
@@ -93,6 +94,9 @@ sealed interface Destination : PlatformScreen {
                             val dragHandle = overrideDragHandle ?:
                             { BottomSheetDefaults.DragHandle() }
 
+                            val windowInsets = overrideWindowInsets ?:
+                            WindowInsets.ime
+
                             ModalBottomSheet(
                                 onDismissRequest = onDismiss,
                                 modifier = modifier,
@@ -103,7 +107,7 @@ sealed interface Destination : PlatformScreen {
                                 tonalElevation = tonalElevation,
                                 scrimColor = scrimColor,
                                 dragHandle = dragHandle,
-                                windowInsets = WindowInsets.ime,
+                                windowInsets = windowInsets,
                             ) {
                                 content(sheetState)
                             }
