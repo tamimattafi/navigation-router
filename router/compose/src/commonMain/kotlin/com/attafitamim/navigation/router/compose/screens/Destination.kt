@@ -2,6 +2,7 @@ package com.attafitamim.navigation.router.compose.screens
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -94,7 +95,7 @@ sealed interface Destination : PlatformScreen {
                             { BottomSheetDefaults.DragHandle() }
 
                             val windowInsets = overrideWindowInsets ?:
-                            BottomSheetDefaults.windowInsets
+                            WindowInsets.ime
 
                             ModalBottomSheet(
                                 onDismissRequest = onDismiss,
