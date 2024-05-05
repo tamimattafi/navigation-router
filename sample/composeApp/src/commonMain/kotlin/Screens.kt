@@ -109,7 +109,6 @@ fun SimpleScreen() {
             Text("Arguments Screen")
         }
 
-        Image(painterResource(DrawableResource("compose-multiplatform.xml")), null)
         Button(onClick = { ApplicationRouter.instance.exit() }) {
             Text("Back")
         }
@@ -215,23 +214,20 @@ fun SnackBarLayout(
 @Composable
 fun BoxScope.SimpleSnackBar(
     snackBarHost: SnackbarHostState,
-    message: String,
-    icon: String? = null,
+    message: String
 ) {
     SnackbarHost(
         modifier = Modifier.align(Alignment.BottomCenter)
             .padding(bottom = 40.dp, start = 20.dp, end = 20.dp).heightIn(max = 90.dp),
         hostState = snackBarHost
     ) {
-        SimpleToast(message = message, icon = icon)
+        SimpleToast(message = message)
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun SimpleToast(
-    message: String,
-    icon: String? = null,
+    message: String
 ) {
     Snackbar {
         Row(
@@ -244,13 +240,6 @@ private fun SimpleToast(
                 maxLines = MAX_SNACK_TEXT,
                 overflow = TextOverflow.Ellipsis
             )
-            if (!icon.isNullOrBlank()) {
-                Image(
-                    modifier = Modifier.size(24.dp).align(Alignment.CenterVertically),
-                    painter = painterResource(DrawableResource(icon)),
-                    contentDescription = null,
-                )
-            }
         }
     }
 }

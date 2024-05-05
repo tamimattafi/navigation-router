@@ -11,6 +11,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,8 +24,10 @@ import com.attafitamim.navigation.router.core.screens.platform.PlatformScreen
 
 sealed interface Destination : PlatformScreen {
 
+    @Stable
     sealed interface ComposeDestination : Destination {
 
+        @Stable
         interface Screen : ComposeDestination {
 
             @Composable
@@ -43,11 +46,13 @@ sealed interface Destination : PlatformScreen {
             }
         }
 
+        @Stable
         interface Dialog : ComposeDestination {
 
             @Composable
             fun Content(onDismiss: () -> Unit)
 
+            @Stable
             interface BottomSheet : Dialog {
 
                 companion object {
@@ -116,6 +121,7 @@ sealed interface Destination : PlatformScreen {
                 }
             }
 
+            @Stable
             interface Alert : Dialog {
 
                 companion object {
@@ -147,6 +153,7 @@ sealed interface Destination : PlatformScreen {
                 }
             }
 
+            @Stable
             interface Overlay : Dialog {
 
                 companion object {
@@ -163,6 +170,7 @@ sealed interface Destination : PlatformScreen {
             }
         }
 
+        @Stable
         interface Popup : ComposeDestination {
 
             @Composable
