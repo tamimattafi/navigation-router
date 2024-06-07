@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
@@ -27,6 +28,13 @@ import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
 import com.attafitamim.navigation.router.core.navigator.Navigator
 import com.attafitamim.navigation.router.core.screens.Screen
 import com.attafitamim.navigation.router.core.screens.platform.ScreenAdapter
+import kotlinx.coroutines.flow.MutableSharedFlow
+
+val LocalComposeNavigatorStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
+    staticCompositionLocalOf { error("savableStateHolder not initialized") }
+
+val LocalComposeNavigator: ProvidableCompositionLocal<ComposeNavigator> =
+    staticCompositionLocalOf { error("savableStateHolder not initialized") }
 
 open class ComposeNavigator(
     private val screenAdapter: ScreenAdapter<Destination>,
@@ -57,6 +65,9 @@ open class ComposeNavigator(
     @Stable
     private var lastCommand: Command? = null
 
+    val removedScreensFlow = MutableSharedFlow<String>()
+    val addedScreensFlow = MutableSharedFlow<String>()
+
     private val currentScreenKey get() =
         dialogsStack.value.lastOrNull() ?: screensStack.value.lastOrNull()
 
@@ -66,9 +77,13 @@ open class ComposeNavigator(
 
     @Composable
     fun Content() {
-        FullScreensLayout()
-        DialogsLayout()
-        PopupsLayout()
+        CompositionLocalProvider(
+            LocalComposeNavigator providesDefault this,
+        ) {
+            FullScreensLayout()
+            DialogsLayout()
+            PopupsLayout()
+        }
     }
 
     @Composable
@@ -81,7 +96,20 @@ open class ComposeNavigator(
         if (previousQueue != currentQueue) {
             previousQueue.forEach { key ->
                 if (!currentQueue.contains(key)) {
-                    savableStateHolder.current.removeState(key)
+                    LaunchedEffect(key) {
+                        removedScreensFlow.emit(key)
+                    }
+
+                    LocalComposeNavigatorStateHolder.current.removeState(key)
+                    clearScreenData(key)
+                }
+            }
+
+            currentQueue.forEach { key ->
+                if (!previousQueue.contains(key)) {
+                    LaunchedEffect(key) {
+                        addedScreensFlow.emit(key)
+                    }
                 }
             }
         }
@@ -150,7 +178,7 @@ open class ComposeNavigator(
         screenKey: String,
         destination: Destination.ComposeDestination
     ) {
-        savableStateHolder.current.SaveableStateProvider(screenKey) {
+        LocalComposeNavigatorStateHolder.current.SaveableStateProvider(screenKey) {
             when (destination) {
                 is Destination.ComposeDestination.Dialog -> destination.Content(onDismiss = {
                     removeDialog(screenKey)
@@ -210,19 +238,15 @@ open class ComposeNavigator(
     private fun removePopup(screenKey: String) {
         val popups = popupsStack.value
         if (popups.contains(screenKey)) popupsStack.update {
-            removeElement(screenKey)
+            remove(screenKey)
         }
-
-        clearScreenData(screenKey)
     }
 
     private fun removeDialog(screenKey: String) {
         val dialogs = dialogsStack.value
         if (dialogs.contains(screenKey)) dialogsStack.update {
-            removeElement(screenKey)
+            remove(screenKey)
         }
-
-        clearScreenData(screenKey)
     }
 
     private fun removeFullScreen(screenKey: String) {
@@ -236,15 +260,8 @@ open class ComposeNavigator(
         }
 
         if (screens.contains(screenKey)) screensStack.update {
-            removeElement(screenKey)
+            remove(screenKey)
         }
-
-        clearScreenData(screenKey)
-    }
-
-    private fun ArrayDeque<String>.removeElement(element: String) {
-        remove(element)
-        clearScreenData(element)
     }
 
     private fun forward(screen: Screen, replaceLast: Boolean = false) {
@@ -288,10 +305,7 @@ open class ComposeNavigator(
         }
 
         dialogsStack.update {
-            removeAll { screenKey ->
-                clearScreenData(screenKey)
-                true
-            }
+            clear()
         }
     }
 
@@ -305,8 +319,7 @@ open class ComposeNavigator(
         notifyBackingToScreen(screen)
         screensStack.update {
             while (last() != screenKey) {
-                val removedScreen = removeLast()
-                clearScreenData(removedScreen)
+                removeLast()
             }
         }
     }
@@ -341,11 +354,7 @@ open class ComposeNavigator(
             remove(first())
             val firstScreen = removeFirst()
 
-            removeAll { screenKey ->
-                clearScreenData(screenKey)
-                true
-            }
-
+            clear()
             add(firstScreen)
         }
     }
@@ -406,8 +415,7 @@ open class ComposeNavigator(
 
         update {
             if (!isEmpty() && replaceLast) {
-                val removedScreen = removeLast()
-                clearScreenData(removedScreen)
+                removeLast()
             }
 
             remove(screenKey)
@@ -424,13 +432,10 @@ open class ComposeNavigator(
 
     companion object {
 
-        val savableStateHolder: ProvidableCompositionLocal<SaveableStateHolder> =
-            staticCompositionLocalOf { error("savableStateHolder not initialized") }
-
         @Composable
         fun Root(content: @Composable () -> Unit) {
             CompositionLocalProvider(
-                savableStateHolder providesDefault rememberSaveableStateHolder(),
+                LocalComposeNavigatorStateHolder providesDefault rememberSaveableStateHolder(),
             ) {
                 content()
             }
