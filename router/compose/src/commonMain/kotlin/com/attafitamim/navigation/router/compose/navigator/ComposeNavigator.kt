@@ -1,13 +1,5 @@
 package com.attafitamim.navigation.router.compose.navigator
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +13,9 @@ import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.unit.IntOffset
+import com.attafitamim.navigation.router.compose.animation.ScreenAnimation
+import com.attafitamim.navigation.router.compose.animation.ScreenAnimationState
+import com.attafitamim.navigation.router.compose.animation.SlideScreenAnimation
 import com.attafitamim.navigation.router.compose.screens.Destination
 import com.attafitamim.navigation.router.core.commands.Command
 import com.attafitamim.navigation.router.core.handlers.ScreenBackPressHandler
@@ -38,7 +32,8 @@ val LocalComposeNavigator: ProvidableCompositionLocal<ComposeNavigator> =
 
 open class ComposeNavigator(
     private val screenAdapter: ScreenAdapter<Destination>,
-    private val navigationDelegate: ComposeNavigationDelegate
+    private val navigationDelegate: ComposeNavigationDelegate,
+    private val screenAnimation: ScreenAnimation? = SlideScreenAnimation
 ) : Navigator {
 
     override val currentVisibleScreen: Screen?
@@ -122,30 +117,28 @@ open class ComposeNavigator(
         val fullScreens by remember { screensStack }
         QueueChangeHandler(fullScreens)
 
-        val animationSpec: FiniteAnimationSpec<IntOffset> = spring(
-            stiffness = Spring.StiffnessMediumLow,
-            visibilityThreshold = IntOffset.VisibilityThreshold
-        )
-
-        val (initialOffset, targetOffset) = when (lastCommand) {
-            is Command.Back,
-            is Command.BackTo,
-            is Command.Remove -> ({ size: Int -> -size }) to ({ size: Int -> size })
-            else -> ({ size: Int -> size }) to ({ size: Int -> -size })
-        }
-
         if (!fullScreens.isEmpty()) {
             val currentScreenKey = fullScreens.last()
             val currentComposeScreen = composeScreens.getValue(currentScreenKey)
 
-            AnimatedContent(
-                targetState = currentScreenKey to currentComposeScreen,
-                transitionSpec = {
-                    slideInHorizontally(animationSpec, initialOffset) togetherWith
-                            slideOutHorizontally(animationSpec, targetOffset)
+            if (screenAnimation != null) {
+                screenAnimation.animate(
+                    lastCommand = lastCommand,
+                    state = ScreenAnimationState(
+                        screenKey = currentScreenKey,
+                        destination = currentComposeScreen
+                    )
+                ) { currentState ->
+                    ComposeScreenLayout(
+                        screenKey = currentState.screenKey,
+                        destination = currentState.destination
+                    )
                 }
-            ) { pair ->
-                ComposeScreenLayout(pair.first, pair.second)
+            } else {
+                ComposeScreenLayout(
+                    screenKey = currentScreenKey,
+                    destination = currentComposeScreen
+                )
             }
         }
     }
