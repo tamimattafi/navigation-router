@@ -8,10 +8,8 @@ plugins {
     alias(libs.plugins.kotlin.native.cocoapods).apply(false)
     alias(libs.plugins.compose).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
-    alias(libs.plugins.nexus)
+    alias(libs.plugins.maven.publish)
 }
-
-apply(from = "convention-plugins/src/main/kotlin/publish.root.gradle")
 
 buildscript {
     repositories {

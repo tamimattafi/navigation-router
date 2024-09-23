@@ -1,37 +1,10 @@
-import GradleUtils.correctArtifactId
-
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
-    id(libs.plugins.convention.plugin.get().pluginId)
+    id(libs.plugins.convention.multiplatform.get().pluginId)
+    id(libs.plugins.convention.publish.get().pluginId)
 }
 
 kotlin {
-    applyDefaultHierarchyTemplate()
-    jvmToolchain(17)
-    jvm()
-
-    js {
-        browser()
-    }
-
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-
-        publishLibraryVariants("release")
-        this.mavenPublication {
-            correctArtifactId(this)
-        }
-    }
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -49,19 +22,6 @@ kotlin {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-android {
-    namespace = "com.attafitamim.navigation.router.platform"
-    compileSdk = 34
-    defaultConfig {
-        minSdk = 16
-    }
-
-    compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
