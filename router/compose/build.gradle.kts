@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
     id(libs.plugins.convention.plugin.get().pluginId)
 }
 
@@ -14,6 +15,9 @@ kotlin {
     jvmToolchain(17)
     jvm("desktop")
 
+    js {
+        browser()
+    }
     wasmJs {
         binaries.executable()
     }
