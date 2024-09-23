@@ -1,5 +1,6 @@
 package com.attafitamim.navigation.sample.compose
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity(), ComposeNavigationDelegate {
         external.forward(PlatformNavigatorConfiguration(this))
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         ApplicationRouter.instance.exit()
     }

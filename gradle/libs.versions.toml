@@ -4,12 +4,12 @@ android_compileSdk = "34"
 android_minSdk = "24"
 android_targetSdk = "34"
 
-android_gradle_plugin = "8.3.2"
+android_gradle_plugin = "8.3.1"
 dokka = "1.9.20"
 nexus = "1.1.0"
 
 # Compose
-compose = "1.7.1"
+compose = "1.7.2"
 compose_plugin = "1.6.10"
 compose_activity = "1.9.2"
 
@@ -19,9 +19,21 @@ kotlin = "2.0.20"
 # Androidx
 androidx-activityCompose = "1.9.2"
 
+# Publishing
+maven-publish = "0.29.0"
+
 [libraries]
+# Plugins
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+# Android
+android-build-tools = { module = "com.android.tools.build:gradle", version.ref = "android_gradle_plugin"}
+
 # Androidx
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+
+# Publish
+maven-publish-plugin = { module = "com.vanniktech.maven.publish.base:com.vanniktech.maven.publish.base.gradle.plugin", version.ref = "maven-publish" }
 
 # Compose
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
@@ -44,10 +56,13 @@ kotlin-native-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", versio
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 # Publishing
-convention-plugin = { id = "convention.publication" }
-publish-root = { id = "publish.root" }
-nexus = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
+convention-multiplatform = { id = "com.attafitamim.navigation.multiplatform" }
+convention-publish = { id = "com.attafitamim.navigation.publish" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish"}
 
 # Compose
 compose = { id = "org.jetbrains.compose", version.ref = "compose_plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+# Java
+java-gradle-plugin = { id = "java-gradle-plugin" }

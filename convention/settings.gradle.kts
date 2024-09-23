@@ -1,12 +1,11 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     repositories {
-        google()
         gradlePluginPortal()
+        mavenLocal()
         mavenCentral()
+        gradlePluginPortal()
     }
-
-    includeBuild("convention")
 }
 
 dependencyResolutionManagement {
@@ -16,13 +15,13 @@ dependencyResolutionManagement {
         mavenCentral()
         google()
     }
+
+    versionCatalogs.create("libs") {
+        from(files("../gradle/libs.versions.toml"))
+    }
 }
 
-rootProject.name = "navigation-router"
-include(":router:core")
-include(":router:base")
-include(":router:platform")
-include(":router:compose")
-include(":sample:android")
-include(":sample:common")
-include(":sample:composeApp")
+rootProject.name = "convention"
+
+include(":multiplatform")
+include(":publishing")
