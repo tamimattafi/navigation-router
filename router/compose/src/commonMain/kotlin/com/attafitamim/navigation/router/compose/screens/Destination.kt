@@ -112,7 +112,9 @@ sealed interface Destination : PlatformScreen {
                                 tonalElevation = tonalElevation,
                                 scrimColor = scrimColor,
                                 dragHandle = dragHandle,
-                                windowInsets = windowInsets,
+                                contentWindowInsets = {
+                                    windowInsets
+                                }
                             ) {
                                 content(sheetState)
                             }
