@@ -32,7 +32,7 @@ android {
     }
 
     kotlin {
-            jvmToolchain(17)
+        jvmToolchain(17)
     }
 
     kotlinOptions {
