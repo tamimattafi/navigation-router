@@ -10,7 +10,7 @@ import org.gradle.api.publish.maven.MavenPomScm
 
 class PublishConventions : Plugin<Project> {
 
-  private val version = "3.0.2-alpha17"
+  private val version = "3.0.2-alpha18"
   private val group = "com.attafitamim.navigation"
 
   override fun apply(project: Project) {

@@ -243,19 +243,23 @@ open class ComposeNavigator(
     }
 
     private fun removeFullScreen(screenKey: String) {
-        val screens = screensStack.value
-        val shouldExit = screens.isEmpty() ||
-                screens.last() == screenKey && screens.size == 1
+        val stack = screensStack.value
+        val isLastScreen = stack.size == 1 && stack.last() == screenKey
+        val shouldExitAfterLastScreen = isLastScreen && !keepAfterLastScreen(screenKey)
+        val shouldExit = shouldExitAfterLastScreen || stack.isEmpty()
 
         if (shouldExit) {
             exitNavigator()
             return
         }
 
-        if (screens.contains(screenKey)) screensStack.update {
+        if (stack.contains(screenKey)) screensStack.update {
             remove(screenKey)
         }
     }
+
+    private fun keepAfterLastScreen(screenKey: String) =
+        navigationDelegate.keepAfterLastScreen(screens.getValue(screenKey))
 
     private fun forward(screen: Screen, replaceLast: Boolean = false) {
         when (val platformScreen = screenAdapter.createPlatformScreen(screen)) {
@@ -338,18 +342,10 @@ open class ComposeNavigator(
     }
 
     private fun backToRoot() {
-        if (screensStack.value.isEmpty() || screensStack.value.size == 1) {
-            return
-        }
-
         navigationDelegate.onBackingToRoot()
-        screensStack.update {
-            remove(first())
-            val firstScreen = removeFirst()
-
-            clear()
-            add(firstScreen)
-        }
+        popupsStack.update { clear() }
+        dialogsStack.update { clear() }
+        screensStack.update { clear() }
     }
 
     private fun clearScreenData(screenKey: String) {
